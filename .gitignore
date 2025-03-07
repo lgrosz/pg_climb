@@ -1,0 +1,8 @@
+# pgsx/make artifacts
+*.o
+*.so
+*.dylib
+*.dll
+regression.diffs
+regression.out
+results/
