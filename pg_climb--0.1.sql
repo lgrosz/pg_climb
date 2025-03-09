@@ -16,7 +16,6 @@ CREATE OR REPLACE FUNCTION grade_out(grade)
 	LANGUAGE 'c' IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE TYPE grade (
-	internallength = 1,
 	input = grade_in,
 	output = grade_out
 );

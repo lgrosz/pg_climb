@@ -2,12 +2,19 @@
 
 #include <fmgr.h>
 #include <stdio.h>
+#include <varatt.h>
 
 // TODO
-// Here is the two options
-// - utilize typmod for each grade format and only have one type - this is
-//   how (I think?) postgis works with its geometries.. this means I don't have
-//   to have a table for each grade!!
+// - [ ] support many types
+//   - [ ] parse typmod `(grade_type)`
+//   - [ ] serialized structure for arbitrary "grade", this should be a flat allocation. It will contain...
+//     - size, total for the struct (including this field), for postgres
+//     - flags+ext flags? I'm not sure if these would be necessary or what
+//       they'd be used for in this context, but PostGIS has them for its
+//       serialize-geo data
+//     - data
+//       - first byte is the type
+//       - the rest is the serialized data for the type
 
 PG_MODULE_MAGIC;
 
@@ -70,6 +77,7 @@ GRADE_in(PG_FUNCTION_ARGS)
 {
 	char	*input = PG_GETARG_CSTRING(0);
 	struct VERM	*verm;
+	unsigned int	size;
 
 	if (input[0] == '\0')
 	{
@@ -77,9 +85,11 @@ GRADE_in(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 
-	verm = (struct VERM *) palloc(sizeof(struct VERM));
+	size = sizeof(struct VERM *);
+	verm = (struct VERM *) palloc(size + VARHDRSZ);
+	SET_VARSIZE(verm, size + VARHDRSZ);
 
-	if (parse_verm(verm, input) == 0)
+	if (parse_verm(verm + VARHDRSZ, input) == 0)
 		PG_RETURN_VERM_P(verm);
 	else
 	{
@@ -95,6 +105,6 @@ Datum
 GRADE_out(PG_FUNCTION_ARGS)
 {
 	struct VERM *verm = PG_GETARG_VERM_P(0);
-	PG_RETURN_CSTRING(format_verm(verm));
+	PG_RETURN_CSTRING(format_verm(verm + VARHDRSZ));
 }
 
