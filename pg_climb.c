@@ -1,63 +1,154 @@
 #include <postgres.h>
 
+#include <assert.h>
 #include <fmgr.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <varatt.h>
-
-// TODO
-// - [ ] support many types
-//   - [ ] parse typmod `(grade_type)`
-//   - [ ] serialized structure for arbitrary "grade", this should be a flat allocation. It will contain...
-//     - size, total for the struct (including this field), for postgres
-//     - flags+ext flags? I'm not sure if these would be necessary or what
-//       they'd be used for in this context, but PostGIS has them for its
-//       serialize-geo data
-//     - data
-//       - first byte is the type
-//       - the rest is the serialized data for the type
 
 PG_MODULE_MAGIC;
 
-// TODO expand on this idea VERM_parse, VERM_parse_result, VERM_free, etc.
-struct VERM {
-	uint8_t	value;
-};
+// Grade Types - these are defines to avoid confusion about what type the
+// compiler decides an enum to be
+#define ANYTYPE	0
+#define VERMTYPE	1
 
-static inline struct VERM *
-DatumGetVermP(Datum X)
-{
-	return (struct VERM *) DatumGetPointer(X);
-}
-static inline Datum
-VermPGetDatum(const struct VERM *X)
-{
-	return PointerGetDatum(X);
-}
-#define PG_GETARG_VERM_P(n) DatumGetVermP(PG_GETARG_DATUM(n))
-#define PG_RETURN_VERM_P(x) return VermPGetDatum(x)
+#define GRADE_TYPE_ANY  0
+#define GRADE_TYPE_VERM 1
 
-static int
-parse_verm(struct VERM *verm, const char *str)
+// Data Structures
+typedef struct {
+	void *data;
+	uint32_t type;
+} Grade;
+
+typedef struct {
+	uint8_t *value;
+	uint32_t type; /* GRADE_TYPE_VERM */
+} Verm;
+
+
+// This is a serialized grade. Some header data and flags can be added to the
+// structure to determine how it should be interpreted, but for now it's just
+// data. Here is how the data should be formatted.
+//
+// <verm-type>
+// [uint8_t]
+typedef struct {
+	char data[1];
+} SerializedGrade;
+
+// Type Functions
+const char *grade_type_name(u_int32_t type);
+
+// Verm Functions
+Verm *verm_create(uint8_t initial_value);
+void verm_free(Verm *verm);
+uint8_t verm_get_value(const Verm *verm);
+void verm_set_value(Verm *verm, uint8_t value);
+int verm_parse(Verm *verm, const char *str);
+Verm *verm_from_string(const char *str);
+char *verm_format(const Verm *verm);
+
+// Grade Functions
+Grade *grade_from_string(const char *str, uint32_t type_hint);
+void grade_free(Grade *grade);
+char *grade_to_string(Grade *grade);
+
+// Serialization Functions
+size_t serialized_grade_size_from_verm(const Verm *verm);
+SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size);
+SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size);
+Grade *grade_from_serialized(const SerializedGrade *serialized);
+
+// Serialization Buffer Functions
+Grade *grade_from_serialized_grade_data(uint8_t *buf);
+Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size);
+u_int32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
+uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
+size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
+
+// PostgreSQL Function Interfaces
+Datum GRADE_in(PG_FUNCTION_ARGS);
+Datum GRADE_out(PG_FUNCTION_ARGS);
+
+const char *grade_type_name(u_int32_t type)
+{
+	switch (type) {
+		case VERMTYPE:
+			return "V-Scale";
+		default:
+			return "Unknown";
+	}
+}
+
+
+Verm *verm_create(uint8_t initial_value)
+{
+	Verm *verm;
+	uint8_t *value;
+
+	verm = malloc(sizeof(Verm));
+	value = malloc(sizeof(uint8_t));
+
+	memcpy(value, &initial_value, sizeof(uint8_t));
+	verm->value = value;
+	verm->type = VERMTYPE;
+
+	return verm;
+}
+
+void verm_free(Verm *verm)
+{
+	free(verm->value);
+	free(verm);
+}
+
+uint8_t verm_get_value(const Verm *verm)
+{
+	return *verm->value;
+}
+
+void verm_set_value(Verm *verm, uint8_t value)
+{
+	memcpy(verm->value, &value, sizeof(uint8_t));
+}
+
+int verm_parse(Verm *verm, const char *str)
 {
 	int	value;
 
-	if (verm == NULL)
+	if (verm == NULL || verm->value == NULL || str == NULL)
 		return 1;
 
 	if (strncasecmp(str, "v", 1) != 0)
 		return 1;
 
+	errno = 0;
 	value = strtol(str + 1, NULL, 10);
 
 	if (errno == ERANGE || value < 0 || value > 255)
 		return 1;
 
-	verm->value = value;
+	memcpy(verm->value, &value, sizeof(uint8_t));
 	return 0;
 }
 
-static char *
-format_verm(struct VERM *verm)
+Verm *verm_from_string(const char *str)
+{
+	Verm *verm = verm_create(0);
+
+	if (verm_parse(verm, str) != 0) {
+		verm_free(verm);
+		verm = NULL;
+	}
+
+	return verm;
+}
+
+char *verm_format(const Verm *verm)
 {
 	char	*str;
 
@@ -65,38 +156,206 @@ format_verm(struct VERM *verm)
 		return NULL;
 
 	str = malloc(5 * sizeof(char));
-	snprintf(str, 5, "V%d", verm->value);
+	snprintf(str, 5, "V%d", verm_get_value(verm));
 
 	return str;
 }
+
+Grade *grade_from_string(const char *str, uint32_t type_hint)
+{
+	Grade	*grade;
+
+	switch (type_hint) {
+		case ANYTYPE: // try all until one hits
+		case VERMTYPE:
+			if ((grade = (Grade*)verm_from_string(str)) != NULL || type_hint) break;
+		default:
+			grade = NULL;
+	}
+
+	return grade;
+}
+
+void grade_free(Grade *grade)
+{
+	switch (grade->type) {
+		case VERMTYPE:
+			verm_free((Verm*)grade);
+			break;
+	}
+}
+
+char *grade_to_string(Grade *grade)
+{
+	switch (grade->type) {
+		case VERMTYPE:
+			return verm_format((Verm *)grade);
+		default:
+			return NULL;
+	}
+}
+
+size_t serialized_grade_size_from_verm(const Verm *verm)
+{
+	size_t size = sizeof(u_int32_t); // for type
+	size += 1; // for verm->value
+	return size;
+}
+
+SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
+{
+	SerializedGrade	*grade;
+	size_t	actual_size;
+	size_t	expected_size;
+	uint8_t	*ptr;
+
+	expected_size = serialized_grade_size_from_verm(verm);
+	ptr = palloc(expected_size);
+	grade = (SerializedGrade *)ptr;
+
+	// TODO here is where flags could be added to ptr
+
+	ptr += serialized_grade_buffer_write_verm(verm, ptr);
+
+	actual_size = ptr - (uint8_t*)grade;
+
+	assert(actual_size == expected_size);
+
+	if (size)
+		*size = expected_size;
+
+        return grade;
+}
+
+Grade *grade_from_serialized(const SerializedGrade *serialized)
+{
+	return grade_from_serialized_grade_data((uint8_t *)serialized->data);
+}
+
+SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
+{
+	SerializedGrade *serialized = NULL;
+
+	switch (grade->type) {
+		case VERMTYPE:
+			serialized = serialized_grade_from_verm((Verm *)grade, size);
+	}
+
+	return serialized;
+
+}
+
+Grade *grade_from_serialized_grade_data(uint8_t *buf)
+{
+	uint32_t type;
+
+	type = serialized_grade_data_read_uint32_t(buf);
+
+	switch (type) {
+		case VERMTYPE:
+			return (Grade *)verm_from_serialized_grade_data(buf, NULL);
+		default:
+			ereport(ERROR,(errmsg("Unknown grade type: %d - %s", type, grade_type_name(type))));
+			return NULL;
+	}
+}
+
+Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
+{
+	const uint8_t *loc;
+	Verm *verm;
+
+	verm = verm_create(0);
+	verm->type = VERMTYPE;
+
+	loc = buf;
+	loc += sizeof(u_int32_t); // skip type
+	verm_set_value(verm, serialized_grade_data_read_uint8_t(loc));
+	loc += sizeof(uint8_t);
+
+	if (size)
+		*size = loc - buf;
+
+	return verm;
+}
+
+u_int32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
+{
+	return *((u_int32_t*)buf);
+}
+
+uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data)
+{
+	return *((uint8_t*)data);
+}
+
+size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
+{
+	uint8_t *loc;
+	u_int32_t type = VERMTYPE;
+	uint8_t value = verm_get_value(verm);
+
+	loc = buf;
+
+	memcpy(loc, &type, sizeof(u_int32_t));
+	loc += sizeof(u_int32_t);
+	memcpy(loc, &value, sizeof(uint8_t));
+	loc += sizeof(uint8_t);
+
+	return loc - buf;
+}
+
+static inline SerializedGrade *
+DatumGetSergradeP(Datum X)
+{
+	return (SerializedGrade *) (DatumGetPointer(X) + VARHDRSZ);
+}
+static inline Datum
+SergradePGetDatum(const SerializedGrade *X)
+{
+	return PointerGetDatum(X);
+}
+#define PG_GETARG_SERGRADE_P(n) DatumGetSergradeP(PG_GETARG_DATUM(n))
+#define PG_RETURN_SERGRADE_P(x) return SergradePGetDatum(x)
 
 PG_FUNCTION_INFO_V1(GRADE_in);
 
 Datum
 GRADE_in(PG_FUNCTION_ARGS)
 {
+	Grade	*grade;
+	SerializedGrade	*serialized = NULL;
 	char	*input = PG_GETARG_CSTRING(0);
-	struct VERM	*verm;
-	unsigned int	size;
+	int32_t	typmod = -1;
+	size_t	size;
 
-	if (input[0] == '\0')
-	{
+	if (PG_NARGS() > 2 && !PG_ARGISNULL(2)) {
+		typmod = PG_GETARG_INT32(2);
+	}
+
+	if (input[0] == '\0') {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
 
-	size = sizeof(struct VERM *);
-	verm = (struct VERM *) palloc(size + VARHDRSZ);
-	SET_VARSIZE(verm, size + VARHDRSZ);
+	typmod = -1;
+	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (u_int32_t)typmod);
 
-	if (parse_verm(verm + VARHDRSZ, input) == 0)
-		PG_RETURN_VERM_P(verm);
-	else
-	{
-		pfree(verm);
+	if (grade) {
+		serialized = serialized_grade_from_grade(grade, &size);
+
+		// insert postgres size header
+		serialized = repalloc0(serialized, size, size + VARHDRSZ);
+		memmove((uint8_t*)serialized + VARHDRSZ, serialized, size);
+		SET_VARSIZE(serialized, size + VARHDRSZ);
+
+		grade_free(grade);
+	} else {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
+
+	PG_RETURN_SERGRADE_P(serialized);
 }
 
 PG_FUNCTION_INFO_V1(GRADE_out);
@@ -104,7 +363,9 @@ PG_FUNCTION_INFO_V1(GRADE_out);
 Datum
 GRADE_out(PG_FUNCTION_ARGS)
 {
-	struct VERM *verm = PG_GETARG_VERM_P(0);
-	PG_RETURN_CSTRING(format_verm(verm + VARHDRSZ));
+	SerializedGrade *serialized = PG_GETARG_SERGRADE_P(0);
+	// TODO is this leaky?
+	Grade *grade = grade_from_serialized(serialized);
+	PG_RETURN_CSTRING(grade_to_string(grade));
 }
 
