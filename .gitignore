@@ -6,3 +6,6 @@
 regression.diffs
 regression.out
 results/
+
+# test artifacts
+test_pg_climb
