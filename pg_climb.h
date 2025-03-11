@@ -1,10 +1,7 @@
-#ifndef PG_CLIMB_H
-
-#include <postgres.h>
-
-#include <fmgr.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#ifndef PG_CLIMB_H
 
 // Grade Types - these are defines to avoid confusion about what type the
 // compiler decides an enum to be
@@ -62,9 +59,5 @@ Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size);
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
 uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
 size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
-
-// PostgreSQL Function Interfaces
-Datum GRADE_in(PG_FUNCTION_ARGS);
-Datum GRADE_out(PG_FUNCTION_ARGS);
 
 #endif
