@@ -3,6 +3,7 @@
 #include <postgres.h>
 
 #include <fmgr.h>
+#include <stddef.h>
 #include <stdint.h>
 
 // Grade Types - these are defines to avoid confusion about what type the
@@ -33,7 +34,7 @@ typedef struct {
 } SerializedGrade;
 
 // Type Functions
-const char *grade_type_name(u_int32_t type);
+const char *grade_type_name(uint32_t type);
 
 // Verm Functions
 Verm *verm_create(uint8_t initial_value);
@@ -58,7 +59,7 @@ Grade *grade_from_serialized(const SerializedGrade *serialized);
 // Serialization Buffer Functions
 Grade *grade_from_serialized_grade_data(uint8_t *buf);
 Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size);
-u_int32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
+uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
 uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
 size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
 

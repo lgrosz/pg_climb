@@ -1,14 +1,16 @@
 #include "pg_climb.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <varatt.h>
+#include <string.h>
 
 PG_MODULE_MAGIC;
 
-const char *grade_type_name(u_int32_t type)
+const char *grade_type_name(uint32_t type)
 {
 	switch (type) {
 		case VERMTYPE:
@@ -131,7 +133,7 @@ char *grade_to_string(Grade *grade)
 
 size_t serialized_grade_size_from_verm(const Verm *verm)
 {
-	size_t size = sizeof(u_int32_t); // for type
+	size_t size = sizeof(uint32_t); // for type
 	size += 1; // for verm->value
 	return size;
 }
@@ -144,7 +146,7 @@ SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
 	uint8_t	*ptr;
 
 	expected_size = serialized_grade_size_from_verm(verm);
-	ptr = palloc(expected_size);
+	ptr = malloc(expected_size);
 	grade = (SerializedGrade *)ptr;
 
 	// TODO here is where flags could be added to ptr
@@ -203,7 +205,7 @@ Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	verm->type = VERMTYPE;
 
 	loc = buf;
-	loc += sizeof(u_int32_t); // skip type
+	loc += sizeof(uint32_t); // skip type
 	verm_set_value(verm, serialized_grade_data_read_uint8_t(loc));
 	loc += sizeof(uint8_t);
 
@@ -213,9 +215,9 @@ Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	return verm;
 }
 
-u_int32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
+uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
 {
-	return *((u_int32_t*)buf);
+	return *((uint32_t*)buf);
 }
 
 uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data)
@@ -226,13 +228,13 @@ uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data)
 size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
 {
 	uint8_t *loc;
-	u_int32_t type = VERMTYPE;
+	uint32_t type = VERMTYPE;
 	uint8_t value = verm_get_value(verm);
 
 	loc = buf;
 
-	memcpy(loc, &type, sizeof(u_int32_t));
-	loc += sizeof(u_int32_t);
+	memcpy(loc, &type, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
 	memcpy(loc, &value, sizeof(uint8_t));
 	loc += sizeof(uint8_t);
 
@@ -273,13 +275,13 @@ GRADE_in(PG_FUNCTION_ARGS)
 	}
 
 	typmod = -1;
-	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (u_int32_t)typmod);
+	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (uint32_t)typmod);
 
 	if (grade) {
 		serialized = serialized_grade_from_grade(grade, &size);
 
 		// insert postgres size header
-		serialized = repalloc0(serialized, size, size + VARHDRSZ);
+		serialized = realloc(serialized, size + VARHDRSZ);
 		memmove((uint8_t*)serialized + VARHDRSZ, serialized, size);
 		SET_VARSIZE(serialized, size + VARHDRSZ);
 
