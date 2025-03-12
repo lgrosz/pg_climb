@@ -56,6 +56,9 @@ int verm_parse(Verm *verm, const char *str)
 	if (verm == NULL || verm->value == NULL || str == NULL)
 		return 1;
 
+	if (strlen(str) < 2)
+		return 1;
+
 	if (strncasecmp(str, "v", 1) != 0)
 		return 1;
 
