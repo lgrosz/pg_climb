@@ -128,10 +128,10 @@ char *grade_to_string(Grade *grade)
 	}
 }
 
-size_t serialized_grade_size_from_verm(const Verm *verm)
+size_t serialized_grade_size_from_verm(void)
 {
 	size_t size = sizeof(uint32_t); // for type
-	size += 1; // for verm->value
+	size += sizeof(uint8_t); // for verm->value content
 	return size;
 }
 
@@ -142,7 +142,7 @@ SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
 	size_t	expected_size;
 	uint8_t	*ptr;
 
-	expected_size = serialized_grade_size_from_verm(verm);
+	expected_size = serialized_grade_size_from_verm();
 	ptr = malloc(expected_size);
 	grade = (SerializedGrade *)ptr;
 
