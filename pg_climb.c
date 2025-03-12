@@ -128,6 +128,11 @@ char *grade_to_string(Grade *grade)
 	}
 }
 
+void serialized_grade_free(SerializedGrade *grade)
+{
+	free(grade);
+}
+
 size_t serialized_grade_size_from_verm(void)
 {
 	size_t size = sizeof(uint32_t); // for type

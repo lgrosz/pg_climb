@@ -48,6 +48,7 @@ void grade_free(Grade *grade);
 char *grade_to_string(Grade *grade);
 
 // Serialization Functions
+void serialized_grade_free(SerializedGrade *grade);
 size_t serialized_grade_size_from_verm(void);
 SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size);
 SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size);
