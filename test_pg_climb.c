@@ -55,6 +55,11 @@ START_TEST(test_verm_parse)
 	Verm *verm;
 	int ret;
 
+	ret = verm_parse(NULL, NULL);
+	ck_assert_uint_ne(ret, 0);
+	ret = verm_parse(NULL, "");
+	ck_assert_uint_ne(ret, 0);
+
 	// invalid strings
 	verm = verm_from_string("");
 	ck_assert_ptr_null(verm);

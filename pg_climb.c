@@ -53,8 +53,10 @@ int verm_parse(Verm *verm, const char *str)
 {
 	int	value;
 
-	if (verm == NULL || verm->value == NULL || str == NULL)
+	if (str == NULL || verm == NULL)
 		return 1;
+
+	assert(verm->value);
 
 	if (strlen(str) < 2)
 		return 1;
