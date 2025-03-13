@@ -9,3 +9,7 @@ results/
 
 # test artifacts
 test_pg_climb
+
+# coverage artifacts
+*.gcno
+*.gcda
