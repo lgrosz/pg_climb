@@ -87,6 +87,8 @@ START_TEST(test_verm_format)
 	Verm *verm;
 	char *string;
 
+	ck_assert_ptr_null(verm_format(NULL));
+
 	// valid strings
 	verm = verm_create(0);
 	string = verm_format(verm);
