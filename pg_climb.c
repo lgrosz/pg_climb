@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +13,8 @@ const char *grade_type_name(uint32_t type)
 	switch (type) {
 		case VERMTYPE:
 			return "V-Scale";
+		case FONTTYPE:
+			return "Font-Scale";
 		default:
 			return "Unknown";
 	}
@@ -99,14 +102,184 @@ char *verm_format(const Verm *verm)
 	return str;
 }
 
+Font *font_create(uint8_t initial_value)
+{
+	Font *font;
+	uint8_t *value;
+
+	font = malloc(sizeof(Font));
+	value = malloc(sizeof(uint8_t));
+
+	memcpy(value, &initial_value, sizeof(uint8_t));
+	font->value = value;
+	font->type = FONTTYPE;
+
+	return font;
+}
+
+void font_free(Font *font)
+{
+	free(font);
+}
+
+uint8_t font_get_value(const Font *font)
+{
+	return *font->value;
+}
+
+void font_set_value(Font *font, uint8_t value)
+{
+	memcpy(font->value, &value, sizeof(uint8_t));
+}
+
+static char get_first_char(const char *str, const char **endptr)
+{
+	if (!strlen(str))
+		return '\0';
+
+	if (endptr)
+		*endptr = str + 1;
+	return str[0];
+}
+
+static int calc_font_value(unsigned int n, char m, int p, uint8_t *value)
+{
+	char mods[] = { 'A', 'B', 'C' };
+
+	if (!value)
+		return 1;
+
+	// ensure p is 1 or 0
+	p = p ? 1 : 0;
+
+	// TODO protect against overflows
+	if (n < 6) {
+		*value = 2 * (n - 1) + p;
+	} else {
+		int m_i = -1;
+		for (int i = 0; i < 3; i++) {
+			if (mods[i] == m) {
+				m_i = 2 * i + p;
+				break;
+			}
+		}
+
+		if (m_i == -1)
+			return 1;
+
+		*value = 10 + 6 * (n - 6) + m_i;
+	}
+
+	return 0;
+}
+
+int font_parse(Font *font, const char *str)
+{
+	char	*endptr;
+	char	m = '\0';
+	int	has_plus;
+	uint8_t	value;
+	unsigned int	n;
+
+	if (str == NULL || font == NULL)
+		return 1;
+
+	assert(font->value);
+
+	if (strlen(str) < 2)
+		return 1;
+
+	if (strncmp(str, "F", 1) != 0)
+		return 1;
+
+	str += 1;
+
+	errno = 0;
+	n = strtoul(str, &endptr, 10);
+
+	if (errno)
+		return 1;
+
+	str = endptr;
+
+	if (n > 5)
+		m = get_first_char(str, (const char **)&endptr);
+
+	str = endptr;
+
+	has_plus = strncmp(str, "+", 1) == 0;
+
+	if (calc_font_value(n, m, has_plus, &value) != 0)
+		return 1;
+
+	memcpy(font->value, &value, sizeof(uint8_t));
+	return 0;
+}
+
+Font *font_from_string(const char *str)
+{
+	Font *font = font_create(0);
+
+	if (font_parse(font, str) != 0) {
+		font_free(font);
+		font = NULL;
+	}
+
+	return font;
+}
+
+char *font_format(const Font *font)
+{
+	char	*str;
+	char	*cur;
+	char	m;
+	const char	mods[]= {'A', 'A', 'B', 'B', 'C', 'C'};
+	int	m_i;
+	int	p;
+	uint8_t	n;
+	uint8_t	value;
+
+	if (font == NULL)
+		return NULL;
+
+	value = *font->value;
+
+	if (value < 10) {
+		n = (value / 2) + 1;
+		p = value % 2 == 1;
+	} else {
+		n = 6 + (value - 10) / 6;
+		m_i = (value - 10) % 6;
+		m = mods[m_i];
+		p = (m_i % 2 == 1);
+	}
+
+	// 6 is the largest potential strlen for a uint8_t
+	str = malloc(6 * sizeof(char));
+
+	cur = str;
+	cur += snprintf(cur, 4, "F%d", n);
+
+	if (value > 9)
+		cur += snprintf(cur, 2, "%c", m);
+
+	if (p)
+		snprintf(cur, 2, "+");
+
+	return str;
+}
+
 Grade *grade_from_string(const char *str, uint32_t type_hint)
 {
 	Grade	*grade;
 
+	// TODO It'd be great to test this type-hinting
 	switch (type_hint) {
 		case ANYTYPE: // try all until one hits
 		case VERMTYPE:
 			if ((grade = (Grade*)verm_from_string(str)) != NULL || type_hint) break;
+		case FONTTYPE:
+			if ((grade = (Grade*)font_from_string(str)) != NULL || type_hint) break;
 		default:
 			grade = NULL;
 	}
@@ -120,6 +293,9 @@ void grade_free(Grade *grade)
 		case VERMTYPE:
 			verm_free((Verm*)grade);
 			break;
+		case FONTTYPE:
+			font_free((Font*)grade);
+			break;
 	}
 }
 
@@ -128,6 +304,8 @@ char *grade_to_string(Grade *grade)
 	switch (grade->type) {
 		case VERMTYPE:
 			return verm_format((Verm *)grade);
+		case FONTTYPE:
+			return font_format((Font *)grade);
 		default:
 			return NULL;
 	}
@@ -170,6 +348,38 @@ SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
         return grade;
 }
 
+SerializedGrade *serialized_grade_from_font(const Font *font, size_t *size)
+{
+	SerializedGrade	*grade;
+	size_t	actual_size;
+	size_t	expected_size;
+	uint8_t	*ptr;
+
+	expected_size = serialized_grade_size_from_font();
+	ptr = malloc(expected_size);
+	grade = (SerializedGrade *)ptr;
+
+	// TODO here is where flags could be added to ptr
+
+	ptr += serialized_grade_buffer_write_font(font, ptr);
+
+	actual_size = ptr - (uint8_t*)grade;
+
+	assert(actual_size == expected_size);
+
+	if (size)
+		*size = expected_size;
+
+        return grade;
+}
+
+size_t serialized_grade_size_from_font()
+{
+	size_t size = sizeof(uint32_t); // for type
+	size += sizeof(uint8_t); // for font->value content
+	return size;
+}
+
 Grade *grade_from_serialized(const SerializedGrade *serialized)
 {
 	return grade_from_serialized_grade_data((uint8_t *)serialized->data);
@@ -177,15 +387,14 @@ Grade *grade_from_serialized(const SerializedGrade *serialized)
 
 SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
 {
-	SerializedGrade *serialized = NULL;
-
 	switch (grade->type) {
 		case VERMTYPE:
-			serialized = serialized_grade_from_verm((Verm *)grade, size);
+			return serialized_grade_from_verm((Verm *)grade, size);
+		case FONTTYPE:
+			return serialized_grade_from_font((Font *)grade, size);
+		default:
+			return NULL;
 	}
-
-	return serialized;
-
 }
 
 Grade *grade_from_serialized_grade_data(uint8_t *buf)
@@ -197,6 +406,8 @@ Grade *grade_from_serialized_grade_data(uint8_t *buf)
 	switch (type) {
 		case VERMTYPE:
 			return (Grade *)verm_from_serialized_grade_data(buf, NULL);
+		case FONTTYPE:
+			return (Grade *)font_from_serialized_grade_data(buf, NULL);
 		default:
 			return NULL;
 	}
@@ -221,6 +432,25 @@ Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	return verm;
 }
 
+Font *font_from_serialized_grade_data(const uint8_t *buf, size_t *size)
+{
+	const uint8_t *loc;
+	Font *font;
+
+	font = font_create(0);
+	font->type = FONTTYPE;
+
+	loc = buf;
+	loc += sizeof(uint32_t); // skip type
+	font_set_value(font, serialized_grade_data_read_uint8_t(loc));
+	loc += sizeof(uint8_t);
+
+	if (size)
+		*size = loc - buf;
+
+	return font;
+}
+
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
 {
 	return *((uint32_t*)buf);
@@ -236,6 +466,22 @@ size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
 	uint8_t *loc;
 	uint32_t type = VERMTYPE;
 	uint8_t value = verm_get_value(verm);
+
+	loc = buf;
+
+	memcpy(loc, &type, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
+	memcpy(loc, &value, sizeof(uint8_t));
+	loc += sizeof(uint8_t);
+
+	return loc - buf;
+}
+
+size_t serialized_grade_buffer_write_font(const Font *font, uint8_t *buf)
+{
+	uint8_t *loc;
+	uint32_t type = FONTTYPE;
+	uint8_t value = font_get_value(font);
 
 	loc = buf;
 
