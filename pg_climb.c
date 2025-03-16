@@ -316,11 +316,15 @@ void serialized_grade_free(SerializedGrade *grade)
 	free(grade);
 }
 
+static size_t size_of_uint8_grade()
+{
+	// type + *->value
+	return sizeof(u_int32_t) + sizeof(uint8_t);
+}
+
 size_t serialized_grade_size_from_verm(void)
 {
-	size_t size = sizeof(uint32_t); // for type
-	size += sizeof(uint8_t); // for verm->value content
-	return size;
+	return size_of_uint8_grade();
 }
 
 SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
@@ -375,9 +379,7 @@ SerializedGrade *serialized_grade_from_font(const Font *font, size_t *size)
 
 size_t serialized_grade_size_from_font()
 {
-	size_t size = sizeof(uint32_t); // for type
-	size += sizeof(uint8_t); // for font->value content
-	return size;
+	return size_of_uint8_grade();
 }
 
 Grade *grade_from_serialized(const SerializedGrade *serialized)
@@ -473,28 +475,22 @@ static size_t buffer_write_uint32_t(uint8_t *buf, uint32_t data)
 	return sizeof(data);
 }
 
-size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
+static size_t buffer_write_uint8_grade(uint8_t *buf, uint32_t type, uint8_t value)
 {
-	uint8_t *loc;
-	uint32_t type = VERMTYPE;
-	uint8_t value = verm_get_value(verm);
+	uint8_t *loc = buf;
 
-	loc = buf;
 	loc += buffer_write_uint32_t(loc, type);
 	loc += buffer_write_uint8_t(loc, value);
 
 	return loc - buf;
 }
 
+size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
+{
+	return buffer_write_uint8_grade(buf, VERMTYPE, verm_get_value(verm));
+}
+
 size_t serialized_grade_buffer_write_font(const Font *font, uint8_t *buf)
 {
-	uint8_t *loc;
-	uint32_t type = FONTTYPE;
-	uint8_t value = font_get_value(font);
-
-	loc = buf;
-	loc += buffer_write_uint32_t(loc, type);
-	loc += buffer_write_uint8_t(loc, value);
-
-	return loc - buf;
+	return buffer_write_uint8_grade(buf, FONTTYPE, font_get_value(font));
 }
