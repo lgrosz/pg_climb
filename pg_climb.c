@@ -20,6 +20,16 @@ const char *grade_type_name(uint32_t type)
 	}
 }
 
+uint32_t grade_type_from_typmod(const char *str)
+{
+	if (strcasecmp("verm", str) == 0) {
+		return VERMTYPE;
+	} else if (strcasecmp("font", str) == 0) {
+		return FONTTYPE;
+	} else {
+		return ANYTYPE;
+	}
+}
 
 Verm *verm_create(uint8_t initial_value)
 {

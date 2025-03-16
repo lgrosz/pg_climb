@@ -11,6 +11,14 @@ START_TEST(test_grade_type_name)
 }
 END_TEST
 
+START_TEST(test_grade_type_from_typmod)
+{
+	ck_assert_uint_eq(grade_type_from_typmod("verm"), VERMTYPE);
+	ck_assert_uint_eq(grade_type_from_typmod("font"), FONTTYPE);
+	ck_assert_uint_eq(grade_type_from_typmod("nothing"), ANYTYPE);
+}
+END_TEST
+
 START_TEST(test_grade_strings)
 {
 	Grade *grade;
@@ -346,6 +354,7 @@ static Suite* pg_climb_suite(void)
 	tc_serial = tcase_create("Serialization");
 
 	tcase_add_test(tc_core, test_grade_type_name);
+	tcase_add_test(tc_core, test_grade_type_from_typmod);
 	tcase_add_test(tc_core, test_grade_strings);
 	suite_add_tcase(s, tc_core);
 

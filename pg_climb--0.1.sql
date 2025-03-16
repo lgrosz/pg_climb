@@ -15,7 +15,13 @@ CREATE OR REPLACE FUNCTION grade_out(grade)
 	AS 'MODULE_PATHNAME','GRADE_out'
 	LANGUAGE 'c' IMMUTABLE STRICT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION grade_typmod_in(cstring[])
+	RETURNS integer
+	AS 'MODULE_PATHNAME', 'GRADE_typmod_in'
+	LANGUAGE 'c' IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TYPE grade (
 	input = grade_in,
-	output = grade_out
+	output = grade_out,
+	typmod_in = grade_typmod_in
 );

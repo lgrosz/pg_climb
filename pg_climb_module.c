@@ -2,7 +2,9 @@
 
 #include "pg_climb.h"
 
+#include <catalog/pg_type_d.h>
 #include <fmgr.h>
+#include <utils/array.h>
 #include <varatt.h>
 
 PG_MODULE_MAGIC;
@@ -40,7 +42,6 @@ GRADE_in(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 
-	typmod = -1;
 	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (uint32_t)typmod);
 
 	if (grade) {
@@ -77,4 +78,36 @@ GRADE_out(PG_FUNCTION_ARGS)
 	PG_RETURN_CSTRING(grade_to_string(grade));
 }
 
+PG_FUNCTION_INFO_V1(GRADE_typmod_in);
+
+Datum
+GRADE_typmod_in(PG_FUNCTION_ARGS)
+{
+	ArrayType	*arr = (ArrayType *) DatumGetPointer(PG_GETARG_DATUM(0));
+	Datum	*values;
+	const char	*str;
+	int	size;
+	uint32_t	typmod;
+
+	deconstruct_array(arr, CSTRINGOID, -2, false, 'c', &values, NULL, &size);
+
+	if (size != 1) {
+		ereport(ERROR,
+				(errcode(ERRCODE_DATA_EXCEPTION),
+				 errmsg("typmod array must contain exactly one value")));
+		PG_RETURN_INT32(0);
+	}
+
+	str = DatumGetCString(values[0]);
+	typmod = grade_type_from_typmod(str);
+
+	if (typmod == ANYTYPE) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+				 errmsg("parameter value not a valid typmod")));
+		PG_RETURN_INT32(0);
+	}
+
+	PG_RETURN_INT32(typmod);
+}
 
