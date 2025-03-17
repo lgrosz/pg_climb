@@ -31,6 +31,26 @@ uint32_t grade_type_from_typmod(const char *str)
 	}
 }
 
+int typmod_string(char **str, int32_t typmod)
+{
+	int ret;
+
+	switch (typmod) {
+		case VERMTYPE:
+			*str = strdup("verm");
+			ret = 0;
+			break;
+		case FONTTYPE:
+			*str = strdup("font");
+			ret = 0;
+			break;
+		default:
+			ret = 1;
+	}
+
+	return ret;
+}
+
 Verm *verm_create(uint8_t initial_value)
 {
 	Verm *verm;

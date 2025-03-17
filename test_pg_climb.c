@@ -59,6 +59,24 @@ START_TEST(test_grade_strings)
 }
 END_TEST
 
+START_TEST(test_typmod_string)
+{
+	char *str;
+	int ret;
+
+	ret = typmod_string(&str, ANYTYPE);
+	ck_assert_int_ne(ret, 0);
+
+	ret = typmod_string(&str, VERMTYPE);
+	ck_assert_str_eq(str, "verm");
+	free(str);
+
+	ret = typmod_string(&str, FONTTYPE);
+	ck_assert_str_eq(str, "font");
+	free(str);
+}
+END_TEST
+
 START_TEST(test_verm_basic)
 {
 	Verm *verm;
@@ -356,6 +374,7 @@ static Suite* pg_climb_suite(void)
 	tcase_add_test(tc_core, test_grade_type_name);
 	tcase_add_test(tc_core, test_grade_type_from_typmod);
 	tcase_add_test(tc_core, test_grade_strings);
+	tcase_add_test(tc_core, test_typmod_string);
 	suite_add_tcase(s, tc_core);
 
 	tcase_add_test(tc_verm, test_verm_basic);

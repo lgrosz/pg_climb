@@ -1,9 +1,15 @@
 #include <postgres.h>
 
+#include "lib/stringinfo.h"
 #include "pg_climb.h"
+#include "utils/elog.h"
+#include "utils/palloc.h"
 
 #include <catalog/pg_type_d.h>
 #include <fmgr.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include <utils/array.h>
 #include <varatt.h>
 
@@ -111,3 +117,31 @@ GRADE_typmod_in(PG_FUNCTION_ARGS)
 	PG_RETURN_INT32(typmod);
 }
 
+PG_FUNCTION_INFO_V1(GRADE_typmod_out);
+
+Datum
+GRADE_typmod_out(PG_FUNCTION_ARGS)
+{
+	StringInfoData	si;
+	char	*typmod_str;
+	int32_t	typmod = PG_GETARG_INT32(0);
+
+	if (typmod < 0)
+		PG_RETURN_CSTRING(pstrdup(""));
+
+	initStringInfo(&si);
+	appendStringInfoChar(&si, '(');
+
+	if (typmod_string(&typmod_str, typmod) != 0) {
+		ereport(WARNING, (errmsg("failed to stringify typmod")));
+		typmod_str = malloc(12); // enough
+		sprintf(typmod_str, "%d", typmod);
+	}
+
+	appendStringInfoString(&si, typmod_str);
+	appendStringInfoChar(&si, ')');
+
+	free(typmod_str);
+
+	PG_RETURN_CSTRING(si.data);
+}
