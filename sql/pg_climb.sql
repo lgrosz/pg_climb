@@ -1,4 +1,4 @@
-CREATE EXTENSION pg_climb version '0.1';
+CREATE EXTENSION pg_climb;
  
 SELECT EXISTS (
     SELECT 1 FROM pg_type WHERE typname = 'grade'
