@@ -145,3 +145,36 @@ GRADE_typmod_out(PG_FUNCTION_ARGS)
 
 	PG_RETURN_CSTRING(si.data);
 }
+
+PG_FUNCTION_INFO_V1(GRADE_enforce_typmod);
+
+Datum
+GRADE_enforce_typmod(PG_FUNCTION_ARGS)
+{
+	Grade *grade;
+	SerializedGrade *serialized;
+	int32_t typmod;
+	void *ret;
+
+	// TODO this is a little ugly, but it gets the job done for now
+	ret = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	serialized = (SerializedGrade *)ret + VARHDRSZ;
+
+	typmod = PG_GETARG_INT32(1);
+
+	grade = grade_from_serialized(serialized);
+
+	if (!grade)
+		ereport(ERROR, errmsg("failed to deserialize grade"));
+
+        // TODO there could be a useful conversion here, like converting between
+        // alike grade types (e.g. verm -> font)
+
+        if (grade && typmod != grade->type)
+		ereport(ERROR, errmsg("typmod mismatched"));
+
+	if (grade)
+		grade_free(grade);
+
+	PG_RETURN_SERGRADE_P(ret);
+}

@@ -31,3 +31,10 @@ CREATE TYPE grade (
 	typmod_in = grade_typmod_in,
 	typmod_out = grade_typmod_out
 );
+
+CREATE OR REPLACE FUNCTION grade(grade, integer, boolean)
+	RETURNS grade
+	AS 'MODULE_PATHNAME','GRADE_enforce_typmod'
+	LANGUAGE 'c' IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE CAST (grade AS grade) WITH FUNCTION grade(grade, integer, boolean) AS IMPLICIT;
