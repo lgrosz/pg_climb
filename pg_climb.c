@@ -157,6 +157,7 @@ Font *font_create(uint8_t initial_value)
 
 void font_free(Font *font)
 {
+	free(font->value);
 	free(font);
 }
 
