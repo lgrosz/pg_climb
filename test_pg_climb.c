@@ -7,7 +7,8 @@ START_TEST(test_grade_type_name)
 	ck_assert_str_eq(grade_type_name(0), "Unknown");
 	ck_assert_str_eq(grade_type_name(1), "V-Scale");
 	ck_assert_str_eq(grade_type_name(2), "Font-Scale");
-	ck_assert_str_eq(grade_type_name(3), "Unknown");
+	ck_assert_str_eq(grade_type_name(3), "Yosemite Decimal System");
+	ck_assert_str_eq(grade_type_name(4), "Unknown");
 }
 END_TEST
 
@@ -15,6 +16,7 @@ START_TEST(test_grade_type_from_typmod)
 {
 	ck_assert_uint_eq(grade_type_from_typmod("verm"), VERMTYPE);
 	ck_assert_uint_eq(grade_type_from_typmod("font"), FONTTYPE);
+	ck_assert_uint_eq(grade_type_from_typmod("yds"), YDSTYPE);
 	ck_assert_uint_eq(grade_type_from_typmod("nothing"), ANYTYPE);
 }
 END_TEST
@@ -24,6 +26,7 @@ START_TEST(test_grade_strings)
 	Grade *grade;
 	Verm *verm;
 	Font *font;
+	Yds *yds;
 	char *string;
 
 	grade = grade_from_string("", ANYTYPE);
@@ -41,6 +44,7 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(string);
 	ck_assert_str_eq(string, "V6");
 	free(string);
+	free(grade);
 
 	grade = grade_from_string("F7C+", ANYTYPE);
 	ck_assert_ptr_nonnull(grade);
@@ -54,7 +58,20 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(string);
 	ck_assert_str_eq(string, "F7C+");
 	free(string);
+	free(grade);
 
+	grade = grade_from_string("5.13b", ANYTYPE);
+	ck_assert_ptr_nonnull(grade);
+	ck_assert_uint_eq(grade->type, YDSTYPE);
+
+	// TODO a casting/function may be nice here
+	yds = (Yds*)grade;
+	ck_assert_uint_eq(yds_get_value(yds), 22);
+
+	string = grade_to_string(grade);
+	ck_assert_ptr_nonnull(string);
+	ck_assert_str_eq(string, "5.13b");
+	free(string);
 	free(grade);
 }
 END_TEST
@@ -73,6 +90,10 @@ START_TEST(test_typmod_string)
 
 	ret = typmod_string(&str, FONTTYPE);
 	ck_assert_str_eq(str, "font");
+	free(str);
+
+	ret = typmod_string(&str, YDSTYPE);
+	ck_assert_str_eq(str, "yds");
 	free(str);
 }
 END_TEST
@@ -237,6 +258,102 @@ START_TEST(test_font_format)
 }
 END_TEST
 
+START_TEST(test_yds_basic)
+{
+	Yds *yds;
+
+	yds = yds_create(0);
+	ck_assert_ptr_nonnull(yds);
+	ck_assert_uint_eq(yds_get_value(yds), 0);
+	yds_set_value(yds, 7);
+	ck_assert_uint_eq(yds_get_value(yds), 7);
+
+	yds_free(yds);
+}
+END_TEST
+
+START_TEST(test_yds_parse)
+{
+	Yds *yds;
+	int ret;
+
+	ret = yds_parse(NULL, NULL);
+	ck_assert_uint_ne(ret, 0);
+	ret = yds_parse(NULL, "");
+	ck_assert_uint_ne(ret, 0);
+
+	// invalid strings
+	yds = yds_from_string("");
+	ck_assert_ptr_null(yds);
+	yds = yds_from_string("5.");
+	ck_assert_ptr_null(yds);
+	yds = yds_from_string("f7a");
+	ck_assert_ptr_null(yds);
+	yds = yds_from_string("5.9a");
+	ck_assert_ptr_null(yds);
+
+	// valid strings
+	yds = yds_from_string("5.1");
+	ck_assert_ptr_nonnull(yds);
+	ck_assert_uint_eq(yds_get_value(yds), 0);
+
+	ret = yds_parse(yds, "5.9");
+	ck_assert_int_eq(ret, 0);
+	ck_assert_uint_eq(yds_get_value(yds), 8);
+
+	ret = yds_parse(yds, "5.10a");
+	ck_assert_int_eq(ret, 0);
+	ck_assert_uint_eq(yds_get_value(yds), 9);
+
+	ret = yds_parse(yds, "5.10c");
+	ck_assert_int_eq(ret, 0);
+	ck_assert_uint_eq(yds_get_value(yds), 11);
+
+	ret = yds_parse(yds, "5.11a");
+	ck_assert_int_eq(ret, 0);
+	ck_assert_uint_eq(yds_get_value(yds), 13);
+
+	yds_free(yds);
+}
+END_TEST
+
+START_TEST(test_yds_format)
+{
+	Yds *yds;
+	char *string;
+
+	ck_assert_ptr_null(yds_format(NULL));
+
+	// valid strings
+	yds = yds_create(0);
+	string = yds_format(yds);
+	ck_assert_str_eq(string, "5.1");
+	free(string);
+
+	yds_set_value(yds, 5);
+	string = yds_format(yds);
+	ck_assert_str_eq(string, "5.6");
+	free(string);
+
+	yds_set_value(yds, 9);
+	string = yds_format(yds);
+	ck_assert_str_eq(string, "5.10a");
+	free(string);
+
+	yds_set_value(yds, 11);
+	string = yds_format(yds);
+	ck_assert_str_eq(string, "5.10c");
+	free(string);
+
+	yds_set_value(yds, 13);
+	string = yds_format(yds);
+	ck_assert_str_eq(string, "5.11a");
+	free(string);
+
+	yds_free(yds);
+}
+END_TEST
+
 START_TEST(test_serial_verm)
 {
 	Verm *verm;
@@ -301,12 +418,45 @@ START_TEST(test_serial_font)
 }
 END_TEST
 
+START_TEST(test_serial_yds)
+{
+	Yds *yds;
+	SerializedGrade *ser;
+	u_int8_t *data;
+	size_t size;
+
+	// constant size 4(type)+1(value)
+	ck_assert_uint_eq(serialized_grade_size_from_yds(), 5);
+
+	// serialize
+	yds = yds_create(12);
+	ser = serialized_grade_from_yds(yds, &size);
+	ck_assert_ptr_nonnull(ser);
+	ck_assert_uint_eq(size, 5);
+	data = (u_int8_t*)ser->data;
+	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), YDSTYPE);
+	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 12);
+
+	yds_free(yds);
+	yds = NULL;
+
+	// deserialize
+	yds = yds_from_serialized_grade_data((u_int8_t*)ser->data, &size);
+	ck_assert_ptr_nonnull(yds);
+	ck_assert_uint_eq(yds_get_value(yds), 12);
+
+	serialized_grade_free(ser);
+	yds_free(yds);
+}
+END_TEST
+
 START_TEST(test_serial_grade)
 {
 	Grade *grade;
 	SerializedGrade *ser;
 	Verm *verm;
 	Font *font;
+	Yds *yds;
 	u_int8_t *data;
 	size_t size;
 
@@ -355,6 +505,29 @@ START_TEST(test_serial_grade)
 
 	serialized_grade_free(ser);
 	grade_free(grade);
+
+	// yds
+	// serialize
+	grade = grade_from_string("5.11b", ANYTYPE);
+	ser = serialized_grade_from_grade(grade, &size);
+	ck_assert_ptr_nonnull(ser);
+	ck_assert_uint_eq(size, 5);
+	data = (u_int8_t*)ser->data;
+	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), YDSTYPE);
+	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 14);
+
+	grade_free(grade);
+	grade = NULL;
+
+	// deserialize
+	grade = grade_from_serialized(ser);
+	ck_assert_ptr_nonnull(grade);
+	ck_assert_uint_eq(grade->type, YDSTYPE);
+	yds = (Yds*)grade;
+	ck_assert_uint_eq(yds_get_value(yds), 14);
+
+	serialized_grade_free(ser);
+	grade_free(grade);
 }
 
 static Suite* pg_climb_suite(void)
@@ -363,12 +536,14 @@ static Suite* pg_climb_suite(void)
 	TCase *tc_core;
 	TCase *tc_verm;
 	TCase *tc_font;
+	TCase *tc_yds;
 	TCase *tc_serial;
 
 	s = suite_create("pg_climb");
 	tc_core = tcase_create("Core");
 	tc_verm = tcase_create("V-Scale");
 	tc_font = tcase_create("Font-Scale");
+	tc_yds = tcase_create("Yosemite Decimal System");
 	tc_serial = tcase_create("Serialization");
 
 	tcase_add_test(tc_core, test_grade_type_name);
@@ -387,8 +562,14 @@ static Suite* pg_climb_suite(void)
 	tcase_add_test(tc_font, test_font_format);
 	suite_add_tcase(s, tc_font);
 
+	tcase_add_test(tc_yds, test_yds_basic);
+	tcase_add_test(tc_yds, test_yds_parse);
+	tcase_add_test(tc_yds, test_yds_format);
+	suite_add_tcase(s, tc_yds);
+
 	tcase_add_test(tc_serial, test_serial_verm);
 	tcase_add_test(tc_serial, test_serial_font);
+	tcase_add_test(tc_serial, test_serial_yds);
 	tcase_add_test(tc_serial, test_serial_grade);
 	suite_add_tcase(s, tc_serial);
 
