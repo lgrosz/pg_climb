@@ -76,6 +76,40 @@ START_TEST(test_grade_strings)
 }
 END_TEST
 
+START_TEST(test_grade_cmp)
+{
+	Grade *g1;
+	Grade *g2;
+
+	// I'm not totally sure what these should be, but they should at least be not equal
+	g1 = grade_from_string("V1", VERMTYPE);
+	g2 = grade_from_string("F5", FONTTYPE);
+	ck_assert_int_ne(grade_cmp(g1, g2), 0);
+	grade_free(g1);
+	grade_free(g2);
+
+	g1 = grade_from_string("V1", VERMTYPE);
+	g2 = grade_from_string("V2", VERMTYPE);
+	ck_assert_int_le(grade_cmp(g1, g2), 0);
+	grade_free(g1);
+	grade_free(g2);
+
+	g1 = grade_from_string("F7A+", FONTTYPE);
+	g2 = grade_from_string("F7B", FONTTYPE);
+	ck_assert_int_le(grade_cmp(g1, g2), 0);
+	grade_free(g1);
+	grade_free(g2);
+
+	g1 = grade_from_string("5.9", YDSTYPE);
+	ck_assert_ptr_nonnull(g1);
+	g2 = grade_from_string("5.10a", YDSTYPE);
+	ck_assert_ptr_nonnull(g1);
+	ck_assert_int_le(grade_cmp(g1, g2), 0);
+	grade_free(g1);
+	grade_free(g2);
+}
+END_TEST
+
 START_TEST(test_typmod_string)
 {
 	char *str;
@@ -170,6 +204,26 @@ START_TEST(test_verm_format)
 	verm_free(verm);
 }
 
+START_TEST(test_verm_cmp)
+{
+	Verm *v1;
+	Verm *v2;
+
+	v1 = verm_create(4);
+	v2 = verm_create(4);
+
+	ck_assert_int_eq(verm_cmp(v1, v2), 0);
+
+	verm_set_value(v2, 3);
+	ck_assert_int_ge(verm_cmp(v1, v2), 0);
+
+	verm_set_value(v2, 5);
+	ck_assert_int_le(verm_cmp(v1, v2), 0);
+
+	verm_free(v1);
+	verm_free(v2);
+}
+END_TEST
 
 START_TEST(test_font_basic)
 {
@@ -255,6 +309,27 @@ START_TEST(test_font_format)
 	free(string);
 
 	font_free(font);
+}
+END_TEST
+
+START_TEST(test_font_cmp)
+{
+	Font *f1;
+	Font *f2;
+
+	f1 = font_create(4);
+	f2 = font_create(4);
+
+	ck_assert_int_eq(font_cmp(f1, f2), 0);
+
+	font_set_value(f2, 3);
+	ck_assert_int_ge(font_cmp(f1, f2), 0);
+
+	font_set_value(f2, 5);
+	ck_assert_int_le(font_cmp(f1, f2), 0);
+
+	font_free(f1);
+	font_free(f2);
 }
 END_TEST
 
@@ -351,6 +426,27 @@ START_TEST(test_yds_format)
 	free(string);
 
 	yds_free(yds);
+}
+END_TEST
+
+START_TEST(test_yds_cmp)
+{
+	Yds *y1;
+	Yds *y2;
+
+	y1 = yds_create(4);
+	y2 = yds_create(4);
+
+	ck_assert_int_eq(yds_cmp(y1, y2), 0);
+
+	yds_set_value(y2, 3);
+	ck_assert_int_ge(yds_cmp(y1, y2), 0);
+
+	yds_set_value(y2, 5);
+	ck_assert_int_le(yds_cmp(y1, y2), 0);
+
+	yds_free(y1);
+	yds_free(y2);
 }
 END_TEST
 
@@ -530,6 +626,26 @@ START_TEST(test_serial_grade)
 	grade_free(grade);
 }
 
+START_TEST(test_serial_cmp)
+{
+	Grade *g1;
+	Grade *g2;
+	SerializedGrade *sg1;
+	SerializedGrade *sg2;
+
+	g1 = grade_from_string("V6", ANYTYPE);
+	g2 = grade_from_string("V7", ANYTYPE);
+	sg1 = serialized_grade_from_grade(g1, NULL);
+	sg2 = serialized_grade_from_grade(g2, NULL);
+
+	ck_assert_int_le(serialized_grade_cmp(sg1, sg2), 0);
+	serialized_grade_free(sg1);
+	serialized_grade_free(sg2);
+	grade_free(g1);
+	grade_free(g2);
+}
+END_TEST
+
 static Suite* pg_climb_suite(void)
 {
 	Suite *s;
@@ -549,28 +665,33 @@ static Suite* pg_climb_suite(void)
 	tcase_add_test(tc_core, test_grade_type_name);
 	tcase_add_test(tc_core, test_grade_type_from_typmod);
 	tcase_add_test(tc_core, test_grade_strings);
+	tcase_add_test(tc_core, test_grade_cmp);
 	tcase_add_test(tc_core, test_typmod_string);
 	suite_add_tcase(s, tc_core);
 
 	tcase_add_test(tc_verm, test_verm_basic);
 	tcase_add_test(tc_verm, test_verm_parse);
 	tcase_add_test(tc_verm, test_verm_format);
+	tcase_add_test(tc_verm, test_verm_cmp);
 	suite_add_tcase(s, tc_verm);
 
 	tcase_add_test(tc_font, test_font_basic);
 	tcase_add_test(tc_font, test_font_parse);
 	tcase_add_test(tc_font, test_font_format);
+	tcase_add_test(tc_font, test_font_cmp);
 	suite_add_tcase(s, tc_font);
 
 	tcase_add_test(tc_yds, test_yds_basic);
 	tcase_add_test(tc_yds, test_yds_parse);
 	tcase_add_test(tc_yds, test_yds_format);
+	tcase_add_test(tc_yds, test_yds_cmp);
 	suite_add_tcase(s, tc_yds);
 
 	tcase_add_test(tc_serial, test_serial_verm);
 	tcase_add_test(tc_serial, test_serial_font);
 	tcase_add_test(tc_serial, test_serial_yds);
 	tcase_add_test(tc_serial, test_serial_grade);
+	tcase_add_test(tc_serial, test_serial_cmp);
 	suite_add_tcase(s, tc_serial);
 
 	return s;

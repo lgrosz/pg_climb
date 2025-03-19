@@ -80,6 +80,11 @@ void verm_free(Verm *verm)
 	free(verm);
 }
 
+int verm_cmp(const Verm *v1, const Verm *v2)
+{
+	return *v1->value - *v2->value;
+}
+
 uint8_t verm_get_value(const Verm *verm)
 {
 	return *verm->value;
@@ -159,6 +164,11 @@ void font_free(Font *font)
 {
 	free(font->value);
 	free(font);
+}
+
+int font_cmp(const Font *f1, const Font *f2)
+{
+	return *f1->value - *f2->value;
 }
 
 uint8_t font_get_value(const Font *font)
@@ -327,6 +337,11 @@ void yds_free(Yds *yds)
 {
 	free(yds->value);
 	free(yds);
+}
+
+int yds_cmp(const Yds *y1, const Yds *y2)
+{
+	return *y1->value - *y2->value;
 }
 
 uint8_t yds_get_value(const Yds *yds)
@@ -506,6 +521,37 @@ char *grade_to_string(Grade *grade)
 	}
 }
 
+int grade_cmp(const Grade *g1, const Grade *g2)
+{
+	Verm *v1;
+	Verm *v2;
+	Font *f1;
+	Font *f2;
+	Yds *y1;
+	Yds *y2;
+
+	if (g1->type != g2->type) {
+		return g1->type - g2->type;
+	}
+
+	switch (g1->type) {
+		case VERMTYPE:
+			v1 = (Verm *)g1;
+			v2 = (Verm *)g2;
+			return verm_cmp(v1, v2);
+		case FONTTYPE:
+			f1 = (Font *)g1;
+			f2 = (Font *)g2;
+			return font_cmp(f1, f2);
+		case YDSTYPE:
+			y1 = (Yds *)g1;
+			y2 = (Yds *)g2;
+			return yds_cmp(y1, y2);
+		default:
+			return 0;
+	}
+}
+
 void serialized_grade_free(SerializedGrade *grade)
 {
 	free(grade);
@@ -610,6 +656,21 @@ SerializedGrade *serialized_grade_from_yds(const Yds *yds, size_t *size)
 Grade *grade_from_serialized(const SerializedGrade *serialized)
 {
 	return grade_from_serialized_grade_data((uint8_t *)serialized->data);
+}
+
+int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2)
+{
+	int ret;
+	Grade *g1;
+	Grade *g2;
+
+	g1 = grade_from_serialized(sg1);
+	g2 = grade_from_serialized(sg2);
+	ret = grade_cmp(g1, g2);
+
+	grade_free(g1);
+	grade_free(g2);
+	return ret;
 }
 
 SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
