@@ -48,3 +48,15 @@ SELECT grade from grades_unique ORDER BY grade;
  5.13c
 (6 rows)
 
+-- the types can be gotten by calling the GradeType function
+SELECT grade, GradeType(grade) FROM grades_unique;
+ grade | gradetype 
+-------+-----------
+ V2    | verm
+ V1    | verm
+ F7A+  | font
+ F5    | font
+ 5.13c | yds
+ 5.10a | yds
+(6 rows)
+

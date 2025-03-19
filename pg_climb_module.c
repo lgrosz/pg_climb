@@ -2,6 +2,7 @@
 
 #include "lib/stringinfo.h"
 #include "pg_climb.h"
+#include "utils/builtins.h"
 #include "utils/elog.h"
 #include "utils/palloc.h"
 
@@ -310,4 +311,33 @@ GRADE_cmp(PG_FUNCTION_ARGS)
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
 	PG_RETURN_INT32(cmp);
+}
+
+PG_FUNCTION_INFO_V1(GRADE_type);
+
+Datum
+GRADE_type(PG_FUNCTION_ARGS)
+{
+	Grade *grade;
+	SerializedGrade *serialized;
+	char *type_str;
+	text *type_text;
+	void *bytes;
+
+	// TODO this is a little ugly, but it gets the job done for now
+	bytes = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	serialized = (SerializedGrade *)bytes + VARHDRSZ;
+	grade = grade_from_serialized(serialized);
+
+        // NOTE Grade.type _is_ typmod for valid types (for now)
+        if (typmod_string(&type_str, grade->type) == 0) {
+		type_text = cstring_to_text(type_str);
+		free(type_str);
+	} else {
+		type_text = cstring_to_text("");
+	}
+
+	grade_free(grade);
+	PG_FREE_IF_COPY(bytes, 0);
+	PG_RETURN_TEXT_P(type_text);
 }

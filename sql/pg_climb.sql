@@ -29,3 +29,5 @@ INSERT INTO grades_unique VALUES
 -- b-tree operators also allow ordering queries
 SELECT grade from grades_unique ORDER BY grade;
 
+-- the types can be gotten by calling the GradeType function
+SELECT grade, GradeType(grade) FROM grades_unique;
