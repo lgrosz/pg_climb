@@ -1,6 +1,6 @@
 # Getting started
 
-This extension uses [PGSX](https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/makefiles/pgxs.mk) to build.
+This extension uses [PGXS](https://www.postgresql.org/docs/current/extend-pgxs.html) to build.
 
 ```sh
 make               # build
