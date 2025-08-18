@@ -126,7 +126,7 @@ CREATE OPERATOR CLASS btree_grade_ops
 	OPERATOR	5	> ,
 	FUNCTION	1	grade_cmp (grade1 grade, grade2 grade);
 
-CREATE OR REPLACE FUNCTION GradeType(grade)
+CREATE OR REPLACE FUNCTION grade_type(grade)
 	RETURNS text
 	AS 'MODULE_PATHNAME', 'GRADE_type'
 	LANGUAGE 'c' IMMUTABLE STRICT PARALLEL SAFE;
