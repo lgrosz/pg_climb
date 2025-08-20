@@ -36,6 +36,7 @@ GRADE_in(PG_FUNCTION_ARGS)
 {
 	Grade	*grade;
 	SerializedGrade	*serialized = NULL;
+	SerializedGrade	*pg_serialized = NULL;
 	char	*input = PG_GETARG_CSTRING(0);
 	int32_t	typmod = -1;
 	size_t	size;
@@ -51,21 +52,23 @@ GRADE_in(PG_FUNCTION_ARGS)
 
 	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (uint32_t)typmod);
 
-	if (grade) {
-		serialized = serialized_grade_from_grade(grade, &size);
-
-		// insert postgres size header
-		serialized = realloc(serialized, size + VARHDRSZ);
-		memmove((uint8_t*)serialized + VARHDRSZ, serialized, size);
-		SET_VARSIZE(serialized, size + VARHDRSZ);
-
-		grade_free(grade);
-	} else {
+	if (!grade) {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
 
-	PG_RETURN_SERGRADE_P(serialized);
+	serialized = serialized_grade_from_grade(grade, &size);
+
+	// copy to pg context
+	pg_serialized = (SerializedGrade *) palloc(size + VARHDRSZ);
+	SET_VARSIZE(pg_serialized, size + VARHDRSZ);
+	// TODO memmove is unecessary _if_ the memory won't overlap
+	memmove((uint8_t*)pg_serialized + VARHDRSZ, serialized, size);
+
+	grade_free(grade);
+	free(serialized);
+
+	PG_RETURN_SERGRADE_P(pg_serialized);
 }
 
 PG_FUNCTION_INFO_V1(GRADE_out);
@@ -74,15 +77,20 @@ Datum
 GRADE_out(PG_FUNCTION_ARGS)
 {
 	SerializedGrade	*serialized = PG_GETARG_SERGRADE_P(0);
-	// TODO is this leaky?
 	Grade *grade = grade_from_serialized(serialized);
+	char *raw;
+	char *pgstr;
 
 	if (!grade)
 		ereport(ERROR,(errmsg("Failed to deserialized grade data")));
 
-	// TODO would it be a better API to allocate the string here and just
-	// format it?
-	PG_RETURN_CSTRING(grade_to_string(grade));
+	raw = grade_to_string(grade);
+	pgstr = pstrdup(raw);
+
+	free(raw);
+	grade_free(grade);
+
+	PG_RETURN_CSTRING(pgstr);
 }
 
 PG_FUNCTION_INFO_V1(GRADE_typmod_in);
