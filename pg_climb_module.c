@@ -166,8 +166,8 @@ GRADE_enforce_typmod(PG_FUNCTION_ARGS)
 	void *ret;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	ret = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	serialized = (SerializedGrade *)ret + VARHDRSZ;
+	ret = ((char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ);
+	serialized = (SerializedGrade *)((char *)ret + VARHDRSZ);
 
 	typmod = PG_GETARG_INT32(1);
 
@@ -194,13 +194,13 @@ Datum
 GRADE_lt(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -213,13 +213,13 @@ Datum
 GRADE_le(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -232,13 +232,13 @@ Datum
 GRADE_eq(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -251,13 +251,13 @@ Datum
 GRADE_neq(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -270,13 +270,13 @@ Datum
 GRADE_ge(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -289,13 +289,13 @@ Datum
 GRADE_gt(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -308,13 +308,13 @@ Datum
 GRADE_cmp(PG_FUNCTION_ARGS)
 {
 	int cmp;
-	void *g1;
-	void *g2;
+	char *g1;
+	char *g2;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	g1 = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	g2 = PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
-	cmp = serialized_grade_cmp((SerializedGrade*)g1 + VARHDRSZ, (SerializedGrade*)g2 + VARHDRSZ);
+	g1 = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	g2 = (char *)PG_GETARG_SERGRADE_P(1) - VARHDRSZ;
+	cmp = serialized_grade_cmp((SerializedGrade*)(g1 + VARHDRSZ), (SerializedGrade*)(g2 + VARHDRSZ));
 
 	PG_FREE_IF_COPY(g1, 0);
 	PG_FREE_IF_COPY(g2, 1);
@@ -330,11 +330,11 @@ GRADE_type(PG_FUNCTION_ARGS)
 	SerializedGrade *serialized;
 	char *type_str;
 	text *type_text;
-	void *bytes;
+	char *bytes;
 
 	// TODO this is a little ugly, but it gets the job done for now
-	bytes = PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
-	serialized = (SerializedGrade *)bytes + VARHDRSZ;
+	bytes = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
+	serialized = (SerializedGrade *)(bytes + VARHDRSZ);
 	grade = grade_from_serialized(serialized);
 
         // NOTE Grade.type _is_ typmod for valid types (for now)
