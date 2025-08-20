@@ -60,3 +60,12 @@ SELECT grade, grade_type(grade) FROM grades_unique;
  5.10a | yds
 (6 rows)
 
+-- grade[] should work
+CREATE TABLE grades_array(grade grade[]);
+INSERT INTO grades_array VALUES (ARRAY['V5'::grade, 'F7A+'::grade]);
+SELECT * FROM grades_array;
+   grade   
+-----------
+ {V5,F7A+}
+(1 row)
+

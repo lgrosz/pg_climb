@@ -31,3 +31,8 @@ SELECT grade from grades_unique ORDER BY grade;
 
 -- the types can be gotten by calling the grade_type function
 SELECT grade, grade_type(grade) FROM grades_unique;
+
+-- grade[] should work
+CREATE TABLE grades_array(grade grade[]);
+INSERT INTO grades_array VALUES (ARRAY['V5'::grade, 'F7A+'::grade]);
+SELECT * FROM grades_array;
