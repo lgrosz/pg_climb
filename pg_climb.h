@@ -1,7 +1,8 @@
+#ifndef PG_CLIMB_H
+#define PG_CLIMB_H
+
 #include <stddef.h>
 #include <stdint.h>
-
-#ifndef PG_CLIMB_H
 
 // Grade Types - these are defines to avoid confusion about what type the
 // compiler decides an enum to be
