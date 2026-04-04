@@ -62,37 +62,32 @@ int typmod_string(char **str, int32_t typmod)
 Verm *verm_create(uint8_t initial_value)
 {
 	Verm *verm;
-	uint8_t *value;
-
 	verm = malloc(sizeof(Verm));
-	value = malloc(sizeof(uint8_t));
 
-	memcpy(value, &initial_value, sizeof(uint8_t));
-	verm->value = value;
 	verm->type = VERMTYPE;
+	verm->value = initial_value;
 
 	return verm;
 }
 
 void verm_free(Verm *verm)
 {
-	free(verm->value);
 	free(verm);
 }
 
 int verm_cmp(const Verm *v1, const Verm *v2)
 {
-	return *v1->value - *v2->value;
+	return v1->value - v2->value;
 }
 
 uint8_t verm_get_value(const Verm *verm)
 {
-	return *verm->value;
+	return verm->value;
 }
 
 void verm_set_value(Verm *verm, uint8_t value)
 {
-	memcpy(verm->value, &value, sizeof(uint8_t));
+	verm->value = value;
 }
 
 int verm_parse(Verm *verm, const char *str)
@@ -101,8 +96,6 @@ int verm_parse(Verm *verm, const char *str)
 
 	if (str == NULL || verm == NULL)
 		return 1;
-
-	assert(verm->value);
 
 	if (strlen(str) < 2)
 		return 1;
@@ -116,7 +109,7 @@ int verm_parse(Verm *verm, const char *str)
 	if (errno == ERANGE || value < 0 || value > 255)
 		return 1;
 
-	memcpy(verm->value, &value, sizeof(uint8_t));
+	verm->value = value;
 	return 0;
 }
 
@@ -148,37 +141,32 @@ char *verm_format(const Verm *verm)
 Font *font_create(uint8_t initial_value)
 {
 	Font *font;
-	uint8_t *value;
-
 	font = malloc(sizeof(Font));
-	value = malloc(sizeof(uint8_t));
 
-	memcpy(value, &initial_value, sizeof(uint8_t));
-	font->value = value;
 	font->type = FONTTYPE;
+	font->value = initial_value;
 
 	return font;
 }
 
 void font_free(Font *font)
 {
-	free(font->value);
 	free(font);
 }
 
 int font_cmp(const Font *f1, const Font *f2)
 {
-	return *f1->value - *f2->value;
+	return f1->value - f2->value;
 }
 
 uint8_t font_get_value(const Font *font)
 {
-	return *font->value;
+	return font->value;
 }
 
 void font_set_value(Font *font, uint8_t value)
 {
-	memcpy(font->value, &value, sizeof(uint8_t));
+	font->value = value;
 }
 
 static char get_first_char(const char *str, const char **endptr)
@@ -233,8 +221,6 @@ int font_parse(Font *font, const char *str)
 	if (str == NULL || font == NULL)
 		return 1;
 
-	assert(font->value);
-
 	if (strlen(str) < 2)
 		return 1;
 
@@ -261,7 +247,7 @@ int font_parse(Font *font, const char *str)
 	if (calc_font_value(n, m, has_plus, &value) != 0)
 		return 1;
 
-	memcpy(font->value, &value, sizeof(uint8_t));
+	font->value = value;
 	return 0;
 }
 
@@ -291,7 +277,7 @@ char *font_format(const Font *font)
 	if (font == NULL)
 		return NULL;
 
-	value = *font->value;
+	value = font->value;
 
 	if (value < 10) {
 		n = (value / 2) + 1;
@@ -321,37 +307,32 @@ char *font_format(const Font *font)
 Yds *yds_create(uint8_t initial_value)
 {
 	Yds *yds;
-	uint8_t *value;
-
 	yds = malloc(sizeof(Yds));
-	value = malloc(sizeof(uint8_t));
 
-	memcpy(value, &initial_value, sizeof(uint8_t));
-	yds->value = value;
 	yds->type = YDSTYPE;
+	yds->value = initial_value;
 
 	return yds;
 }
 
 void yds_free(Yds *yds)
 {
-	free(yds->value);
 	free(yds);
 }
 
 int yds_cmp(const Yds *y1, const Yds *y2)
 {
-	return *y1->value - *y2->value;
+	return y1->value - y2->value;
 }
 
 uint8_t yds_get_value(const Yds *yds)
 {
-	return *yds->value;
+	return yds->value;
 }
 
 void yds_set_value(Yds *yds, uint8_t value)
 {
-	memcpy(yds->value, &value, sizeof(uint8_t));
+	yds->value = value;
 }
 
 static int calc_yds_value(unsigned int n, char m, uint8_t *value)
@@ -392,8 +373,6 @@ int yds_parse(Yds *yds, const char *str)
 	if (str == NULL || yds == NULL)
 		return 1;
 
-	assert(yds->value);
-
 	if (strlen(str) < 3)
 		return 1;
 
@@ -421,7 +400,7 @@ int yds_parse(Yds *yds, const char *str)
 	if (calc_yds_value(n, m, &value) != 0)
 		return 1;
 
-	memcpy(yds->value, &value, sizeof(uint8_t));
+	yds->value = value;
 	return 0;
 }
 
@@ -450,7 +429,7 @@ char *yds_format(const Yds *yds)
 	if (yds == NULL)
 		return NULL;
 
-	value = *yds->value;
+	value = yds->value;
 
 	if (value < 9) {
 		n = value + 1;

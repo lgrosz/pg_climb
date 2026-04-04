@@ -18,17 +18,17 @@ typedef struct {
 
 typedef struct {
 	uint32_t type; /* GRADE_TYPE_VERM */
-	uint8_t *value;
+	uint8_t value;
 } Verm;
 
 typedef struct {
 	uint32_t type; /* GRADE_TYPE_FONT */
-	uint8_t *value;
+	uint8_t value;
 } Font;
 
 typedef struct {
 	uint32_t type; /* GRADE_TYPE_YDS */
-	uint8_t *value;
+	uint8_t value;
 } Yds;
 
 // This is a serialized grade. Some header data and flags can be added to the
