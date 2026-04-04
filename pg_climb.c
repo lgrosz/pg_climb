@@ -455,7 +455,6 @@ Grade *grade_from_string(const char *str, uint32_t type_hint)
 {
 	Grade	*grade;
 
-	// TODO It'd be great to test this type-hinting
 	switch (type_hint) {
 		case ANYTYPE: // try all until one hits
 		case VERMTYPE:

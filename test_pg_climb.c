@@ -73,6 +73,14 @@ START_TEST(test_grade_strings)
 	ck_assert_str_eq(string, "5.13b");
 	free(string);
 	free(grade);
+
+	// These should fail because of the hint, even though they are valid for other types
+	grade = grade_from_string("F7C", VERMTYPE);
+	ck_assert_ptr_null(grade);
+	grade = grade_from_string("5.11", FONTTYPE);
+	ck_assert_ptr_null(grade);
+	grade = grade_from_string("V7", YDSTYPE);
+	ck_assert_ptr_null(grade);
 }
 END_TEST
 
