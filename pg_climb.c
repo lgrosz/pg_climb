@@ -538,7 +538,7 @@ void serialized_grade_free(SerializedGrade *grade)
 static size_t size_of_uint8_grade()
 {
 	// type + *->value
-	return sizeof(u_int32_t) + sizeof(uint8_t);
+	return sizeof(uint32_t) + sizeof(uint8_t);
 }
 
 size_t serialized_grade_size_from_verm(void)
