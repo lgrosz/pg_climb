@@ -91,6 +91,9 @@ Grade *grade_from_string(const char *str, uint32_t type_hint);
 void grade_free(Grade *grade);
 char *grade_to_string(Grade *grade);
 int grade_cmp(const Grade *g1, const Grade *g2);
+Verm *grade_as_verm(Grade *g);
+Font *grade_as_font(Grade *g);
+Yds *grade_as_yds(Grade *g);
 
 // Serialization Functions
 void serialized_grade_free(SerializedGrade *grade);
