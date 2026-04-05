@@ -142,15 +142,10 @@ END_TEST
 
 START_TEST(test_verm_basic)
 {
-	Verm *verm;
+	Verm verm;
 
-	verm = verm_create(0);
-	ck_assert_ptr_nonnull(verm);
-	ck_assert_uint_eq(verm_get_value(verm), 0);
-	verm_set_value(verm, 7);
-	ck_assert_uint_eq(verm_get_value(verm), 7);
-
-	verm_free(verm);
+	verm_set_value(&verm, 7);
+	ck_assert_uint_eq(verm_get_value(&verm), 7);
 }
 END_TEST
 
@@ -188,62 +183,53 @@ END_TEST
 
 START_TEST(test_verm_format)
 {
-	Verm *verm;
+	Verm verm;
 	char *string;
 
 	ck_assert_ptr_null(verm_format(NULL));
 
 	// valid strings
-	verm = verm_create(0);
-	string = verm_format(verm);
+	verm_set_value(&verm, 0);
+	string = verm_format(&verm);
 	ck_assert_str_eq(string, "V0");
 	free(string);
 
-	verm_set_value(verm, 8);
-	string = verm_format(verm);
+	verm_set_value(&verm, 8);
+	string = verm_format(&verm);
 	ck_assert_str_eq(string, "V8");
 	free(string);
 
-	verm_set_value(verm, 12);
-	string = verm_format(verm);
+	verm_set_value(&verm, 12);
+	string = verm_format(&verm);
 	ck_assert_str_eq(string, "V12");
 	free(string);
-
-	verm_free(verm);
 }
 
 START_TEST(test_verm_cmp)
 {
-	Verm *v1;
-	Verm *v2;
+	Verm v1;
+	Verm v2;
 
-	v1 = verm_create(4);
-	v2 = verm_create(4);
+	verm_set_value(&v1, 4);
+	verm_set_value(&v2, 4);
+	ck_assert_int_eq(verm_cmp(&v1, &v2), 0);
 
-	ck_assert_int_eq(verm_cmp(v1, v2), 0);
+	verm_set_value(&v2, 3);
+	ck_assert_int_ge(verm_cmp(&v1, &v2), 0);
 
-	verm_set_value(v2, 3);
-	ck_assert_int_ge(verm_cmp(v1, v2), 0);
-
-	verm_set_value(v2, 5);
-	ck_assert_int_le(verm_cmp(v1, v2), 0);
-
-	verm_free(v1);
-	verm_free(v2);
+	verm_set_value(&v2, 5);
+	ck_assert_int_le(verm_cmp(&v1, &v2), 0);
 }
 END_TEST
 
 START_TEST(test_font_basic)
 {
-	Font *font;
+	Font font;
 
-	font = font_create(0);
-	ck_assert_ptr_nonnull(font);
-	ck_assert_uint_eq(font_get_value(font), 0);
-	font_set_value(font, 7);
-	ck_assert_uint_eq(font_get_value(font), 7);
-
-	font_free(font);
+	font_set_value(&font, 0);
+	ck_assert_uint_eq(font_get_value(&font), 0);
+	font_set_value(&font, 7);
+	ck_assert_uint_eq(font_get_value(&font), 7);
 }
 END_TEST
 
@@ -290,68 +276,59 @@ END_TEST
 
 START_TEST(test_font_format)
 {
-	Font *font;
+	Font font;
 	char *string;
 
 	ck_assert_ptr_null(font_format(NULL));
 
 	// valid strings
-	font = font_create(0);
-	string = font_format(font);
+	font_set_value(&font, 0);
+	string = font_format(&font);
 	ck_assert_str_eq(string, "F1");
 	free(string);
 
-	font_set_value(font, 5);
-	string = font_format(font);
+	font_set_value(&font, 5);
+	string = font_format(&font);
 	ck_assert_str_eq(string, "F3+");
 	free(string);
 
-	font_set_value(font, 10);
-	string = font_format(font);
+	font_set_value(&font, 10);
+	string = font_format(&font);
 	ck_assert_str_eq(string, "F6A");
 	free(string);
 
-	font_set_value(font, 11);
-	string = font_format(font);
+	font_set_value(&font, 11);
+	string = font_format(&font);
 	ck_assert_str_eq(string, "F6A+");
 	free(string);
-
-	font_free(font);
 }
 END_TEST
 
 START_TEST(test_font_cmp)
 {
-	Font *f1;
-	Font *f2;
+	Font f1;
+	Font f2;
 
-	f1 = font_create(4);
-	f2 = font_create(4);
+	font_set_value(&f1, 4);
+	font_set_value(&f2, 4);
+	ck_assert_int_eq(font_cmp(&f1, &f2), 0);
 
-	ck_assert_int_eq(font_cmp(f1, f2), 0);
+	font_set_value(&f2, 3);
+	ck_assert_int_ge(font_cmp(&f1, &f2), 0);
 
-	font_set_value(f2, 3);
-	ck_assert_int_ge(font_cmp(f1, f2), 0);
-
-	font_set_value(f2, 5);
-	ck_assert_int_le(font_cmp(f1, f2), 0);
-
-	font_free(f1);
-	font_free(f2);
+	font_set_value(&f2, 5);
+	ck_assert_int_le(font_cmp(&f1, &f2), 0);
 }
 END_TEST
 
 START_TEST(test_yds_basic)
 {
-	Yds *yds;
+	Yds yds;
 
-	yds = yds_create(0);
-	ck_assert_ptr_nonnull(yds);
-	ck_assert_uint_eq(yds_get_value(yds), 0);
-	yds_set_value(yds, 7);
-	ck_assert_uint_eq(yds_get_value(yds), 7);
-
-	yds_free(yds);
+	yds_set_value(&yds, 0);
+	ck_assert_uint_eq(yds_get_value(&yds), 0);
+	yds_set_value(&yds, 7);
+	ck_assert_uint_eq(yds_get_value(&yds), 7);
 }
 END_TEST
 
@@ -402,65 +379,59 @@ END_TEST
 
 START_TEST(test_yds_format)
 {
-	Yds *yds;
+	Yds yds;
 	char *string;
 
 	ck_assert_ptr_null(yds_format(NULL));
 
 	// valid strings
-	yds = yds_create(0);
-	string = yds_format(yds);
+	yds_set_value(&yds, 0);
+	string = yds_format(&yds);
 	ck_assert_str_eq(string, "5.1");
 	free(string);
 
-	yds_set_value(yds, 5);
-	string = yds_format(yds);
+	yds_set_value(&yds, 5);
+	string = yds_format(&yds);
 	ck_assert_str_eq(string, "5.6");
 	free(string);
 
-	yds_set_value(yds, 9);
-	string = yds_format(yds);
+	yds_set_value(&yds, 9);
+	string = yds_format(&yds);
 	ck_assert_str_eq(string, "5.10a");
 	free(string);
 
-	yds_set_value(yds, 11);
-	string = yds_format(yds);
+	yds_set_value(&yds, 11);
+	string = yds_format(&yds);
 	ck_assert_str_eq(string, "5.10c");
 	free(string);
 
-	yds_set_value(yds, 13);
-	string = yds_format(yds);
+	yds_set_value(&yds, 13);
+	string = yds_format(&yds);
 	ck_assert_str_eq(string, "5.11a");
 	free(string);
-
-	yds_free(yds);
 }
 END_TEST
 
 START_TEST(test_yds_cmp)
 {
-	Yds *y1;
-	Yds *y2;
+	Yds y1;
+	Yds y2;
 
-	y1 = yds_create(4);
-	y2 = yds_create(4);
+	yds_set_value(&y1, 4);
+	yds_set_value(&y2, 4);
+	ck_assert_int_eq(yds_cmp(&y1, &y2), 0);
 
-	ck_assert_int_eq(yds_cmp(y1, y2), 0);
+	yds_set_value(&y2, 3);
+	ck_assert_int_ge(yds_cmp(&y1, &y2), 0);
 
-	yds_set_value(y2, 3);
-	ck_assert_int_ge(yds_cmp(y1, y2), 0);
-
-	yds_set_value(y2, 5);
-	ck_assert_int_le(yds_cmp(y1, y2), 0);
-
-	yds_free(y1);
-	yds_free(y2);
+	yds_set_value(&y2, 5);
+	ck_assert_int_le(yds_cmp(&y1, &y2), 0);
 }
 END_TEST
 
 START_TEST(test_serial_verm)
 {
-	Verm *verm;
+	Verm verm;
 	SerializedGrade *ser;
 	uint8_t *data;
 	size_t size;
@@ -469,8 +440,8 @@ START_TEST(test_serial_verm)
 	ck_assert_uint_eq(serialized_grade_size_from_verm(), 5);
 
 	// serialize
-	verm = verm_create(5);
-	ser = serialized_grade_from_verm(verm, &size);
+	verm_set_value(&verm, 5);
+	ser = serialized_grade_from_verm(&verm, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
@@ -478,13 +449,12 @@ START_TEST(test_serial_verm)
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 5);
 
 	serialized_grade_free(ser);
-	verm_free(verm);
 }
 END_TEST
 
 START_TEST(test_serial_font)
 {
-	Font *font;
+	Font font;
 	SerializedGrade *ser;
 	uint8_t *data;
 	size_t size;
@@ -493,8 +463,8 @@ START_TEST(test_serial_font)
 	ck_assert_uint_eq(serialized_grade_size_from_font(), 5);
 
 	// serialize
-	font = font_create(12);
-	ser = serialized_grade_from_font(font, &size);
+	font_set_value(&font, 12);
+	ser = serialized_grade_from_font(&font, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
@@ -502,13 +472,12 @@ START_TEST(test_serial_font)
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 12);
 
 	serialized_grade_free(ser);
-	font_free(font);
 }
 END_TEST
 
 START_TEST(test_serial_yds)
 {
-	Yds *yds;
+	Yds yds;
 	SerializedGrade *ser;
 	uint8_t *data;
 	size_t size;
@@ -517,8 +486,8 @@ START_TEST(test_serial_yds)
 	ck_assert_uint_eq(serialized_grade_size_from_yds(), 5);
 
 	// serialize
-	yds = yds_create(12);
-	ser = serialized_grade_from_yds(yds, &size);
+	yds_set_value(&yds, 12);
+	ser = serialized_grade_from_yds(&yds, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
@@ -526,7 +495,6 @@ START_TEST(test_serial_yds)
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 12);
 
 	serialized_grade_free(ser);
-	yds_free(yds);
 }
 END_TEST
 
