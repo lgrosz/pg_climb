@@ -112,9 +112,6 @@ int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2)
 
 // Serialization Buffer Functions
 Grade *grade_from_serialized_grade_data(uint8_t *buf);
-Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size);
-Font *font_from_serialized_grade_data(const uint8_t *buf, size_t *size);
-Yds *yds_from_serialized_grade_data(const uint8_t *buf, size_t *size);
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
 uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
 size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
