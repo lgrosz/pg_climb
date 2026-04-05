@@ -734,60 +734,6 @@ Grade *grade_from_serialized_grade_data(uint8_t *buf)
 	}
 }
 
-Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
-{
-	const uint8_t *loc;
-	Verm *verm;
-
-	verm = verm_create(0);
-
-	loc = buf;
-	loc += sizeof(uint32_t); // skip type
-	verm_set_value(verm, serialized_grade_data_read_uint8_t(loc));
-	loc += sizeof(uint8_t);
-
-	if (size)
-		*size = loc - buf;
-
-	return verm;
-}
-
-Font *font_from_serialized_grade_data(const uint8_t *buf, size_t *size)
-{
-	const uint8_t *loc;
-	Font *font;
-
-	font = font_create(0);
-
-	loc = buf;
-	loc += sizeof(uint32_t); // skip type
-	font_set_value(font, serialized_grade_data_read_uint8_t(loc));
-	loc += sizeof(uint8_t);
-
-	if (size)
-		*size = loc - buf;
-
-	return font;
-}
-
-Yds *yds_from_serialized_grade_data(const uint8_t *buf, size_t *size)
-{
-	const uint8_t *loc;
-	Yds *yds;
-
-	yds = yds_create(0);
-
-	loc = buf;
-	loc += sizeof(uint32_t); // skip type
-	yds_set_value(yds, serialized_grade_data_read_uint8_t(loc));
-	loc += sizeof(uint8_t);
-
-	if (size)
-		*size = loc - buf;
-
-	return yds;
-}
-
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
 {
 	return *((uint32_t*)buf);
