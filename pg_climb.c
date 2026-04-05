@@ -59,19 +59,6 @@ int typmod_string(char **str, int32_t typmod)
 	return ret;
 }
 
-Verm *verm_create(uint8_t initial_value)
-{
-	Verm *verm;
-	verm = malloc(sizeof(Verm));
-	verm->value = initial_value;
-	return verm;
-}
-
-void verm_free(Verm *verm)
-{
-	free(verm);
-}
-
 int verm_cmp(const Verm *v1, const Verm *v2)
 {
 	return v1->value - v2->value;
@@ -121,19 +108,6 @@ char *verm_format(const Verm *verm)
 	snprintf(str, 5, "V%d", verm_get_value(verm));
 
 	return str;
-}
-
-Font *font_create(uint8_t initial_value)
-{
-	Font *font;
-	font = malloc(sizeof(Font));
-	font->value = initial_value;
-	return font;
-}
-
-void font_free(Font *font)
-{
-	free(font);
 }
 
 int font_cmp(const Font *f1, const Font *f2)
@@ -272,19 +246,6 @@ char *font_format(const Font *font)
 		snprintf(cur, 2, "+");
 
 	return str;
-}
-
-Yds *yds_create(uint8_t initial_value)
-{
-	Yds *yds;
-	yds = malloc(sizeof(Yds));
-	yds->value = initial_value;
-	return yds;
-}
-
-void yds_free(Yds *yds)
-{
-	free(yds);
 }
 
 int yds_cmp(const Yds *y1, const Yds *y2)

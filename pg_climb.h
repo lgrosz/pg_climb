@@ -60,8 +60,6 @@ uint32_t grade_type_from_typmod(const char *);
 int typmod_string(char **, int32_t typmod);
 
 // Verm Functions
-Verm *verm_create(uint8_t initial_value);
-void verm_free(Verm *verm);
 int verm_cmp(const Verm *v1, const Verm *v2);
 uint8_t verm_get_value(const Verm *verm);
 void verm_set_value(Verm *verm, uint8_t value);
@@ -69,8 +67,6 @@ int verm_parse(Verm *verm, const char *str);
 char *verm_format(const Verm *verm);
 
 // Font Functions
-Font *font_create(uint8_t initial_value);
-void font_free(Font *font);
 int font_cmp(const Font *f1, const Font *f2);
 uint8_t font_get_value(const Font *font);
 void font_set_value(Font *font, uint8_t value);
@@ -78,8 +74,6 @@ int font_parse(Font *font, const char *str);
 char *font_format(const Font *font);
 
 // YDS Functions
-Yds *yds_create(uint8_t initial_value);
-void yds_free(Yds *yds);
 int yds_cmp(const Yds *y1, const Yds *y2);
 uint8_t yds_get_value(const Yds *yds);
 void yds_set_value(Yds *yds, uint8_t value);
