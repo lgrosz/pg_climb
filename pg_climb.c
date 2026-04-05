@@ -453,21 +453,26 @@ char *yds_format(const Yds *yds)
 
 Grade *grade_from_string(const char *str, uint32_t type_hint)
 {
-	Grade	*grade;
+	Grade *g;
 
-	switch (type_hint) {
-		case ANYTYPE: // try all until one hits
-		case VERMTYPE:
-			if ((grade = (Grade*)verm_from_string(str)) != NULL || type_hint) break;
-		case FONTTYPE:
-			if ((grade = (Grade*)font_from_string(str)) != NULL || type_hint) break;
-		case YDSTYPE:
-			if ((grade = (Grade*)yds_from_string(str)) != NULL || type_hint) break;
-		default:
-			grade = NULL;
-	}
+	if (!str || !*str)
+		return NULL;
 
-	return grade;
+	if (type_hint == VERMTYPE)
+		return (Grade*)verm_from_string(str);
+
+	if (type_hint == FONTTYPE)
+		return (Grade*)font_from_string(str);
+
+	if (type_hint == YDSTYPE)
+		return (Grade*)yds_from_string(str);
+
+	// ANYTYPE
+	if ((g = (Grade*)verm_from_string(str))) return g;
+	if ((g = (Grade*)font_from_string(str))) return g;
+	if ((g = (Grade*)yds_from_string(str))) return g;
+
+	return NULL;
 }
 
 void grade_free(Grade *grade)
