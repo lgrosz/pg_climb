@@ -63,10 +63,7 @@ Verm *verm_create(uint8_t initial_value)
 {
 	Verm *verm;
 	verm = malloc(sizeof(Verm));
-
-	verm->type = VERMTYPE;
 	verm->value = initial_value;
-
 	return verm;
 }
 
@@ -142,10 +139,7 @@ Font *font_create(uint8_t initial_value)
 {
 	Font *font;
 	font = malloc(sizeof(Font));
-
-	font->type = FONTTYPE;
 	font->value = initial_value;
-
 	return font;
 }
 
@@ -308,10 +302,7 @@ Yds *yds_create(uint8_t initial_value)
 {
 	Yds *yds;
 	yds = malloc(sizeof(Yds));
-
-	yds->type = YDSTYPE;
 	yds->value = initial_value;
-
 	return yds;
 }
 
@@ -458,47 +449,74 @@ Grade *grade_from_string(const char *str, uint32_t type_hint)
 	if (!str || !*str)
 		return NULL;
 
-	if (type_hint == VERMTYPE)
-		return (Grade*)verm_from_string(str);
+	g = malloc(sizeof(Grade));
+	if (!g)
+		return NULL;
 
-	if (type_hint == FONTTYPE)
-		return (Grade*)font_from_string(str);
+	if (type_hint == VERMTYPE) {
+		if (verm_parse(&g->as.verm, str) == 0) {
+			g->type = VERMTYPE;
+			return g;
+		}
 
-	if (type_hint == YDSTYPE)
-		return (Grade*)yds_from_string(str);
+		free(g);
+		return NULL;
+	}
+
+	if (type_hint == FONTTYPE) {
+		if (font_parse(&g->as.font, str) == 0) {
+			g->type = FONTTYPE;
+			return g;
+		}
+
+		free(g);
+		return NULL;
+	}
+
+	if (type_hint == YDSTYPE) {
+		if (yds_parse(&g->as.yds, str) == 0) {
+			g->type = YDSTYPE;
+			return g;
+		}
+
+		free(g);
+		return NULL;
+	}
 
 	// ANYTYPE
-	if ((g = (Grade*)verm_from_string(str))) return g;
-	if ((g = (Grade*)font_from_string(str))) return g;
-	if ((g = (Grade*)yds_from_string(str))) return g;
+	if (verm_parse(&g->as.verm, str) == 0) {
+		g->type = VERMTYPE;
+		return g;
+	}
 
+	if (font_parse(&g->as.font, str) == 0) {
+		g->type = FONTTYPE;
+		return g;
+	}
+
+	if (yds_parse(&g->as.yds, str) == 0) {
+		g->type = YDSTYPE;
+		return g;
+	}
+
+	free(g);
 	return NULL;
 }
 
 void grade_free(Grade *grade)
 {
-	switch (grade->type) {
-		case VERMTYPE:
-			verm_free((Verm*)grade);
-			break;
-		case FONTTYPE:
-			font_free((Font*)grade);
-			break;
-		case YDSTYPE:
-			yds_free((Yds*)grade);
-			break;
-	}
+	free(grade);
 }
 
 char *grade_to_string(Grade *grade)
 {
 	switch (grade->type) {
 		case VERMTYPE:
-			return verm_format((Verm *)grade);
+			return verm_format(&grade->as.verm);
 		case FONTTYPE:
-			return font_format((Font *)grade);
+			return font_format(&grade->as.font);
 		case YDSTYPE:
-			return yds_format((Yds *)grade);
+			return yds_format(&grade->as.yds);
 		default:
 			return NULL;
 	}
@@ -506,30 +524,20 @@ char *grade_to_string(Grade *grade)
 
 int grade_cmp(const Grade *g1, const Grade *g2)
 {
-	Verm *v1;
-	Verm *v2;
-	Font *f1;
-	Font *f2;
-	Yds *y1;
-	Yds *y2;
+	if (!g1 || !g2)
+		return 0;
 
-	if (g1->type != g2->type) {
+	// This is senseless
+	if (g1->type != g2->type)
 		return g1->type - g2->type;
-	}
 
 	switch (g1->type) {
 		case VERMTYPE:
-			v1 = (Verm *)g1;
-			v2 = (Verm *)g2;
-			return verm_cmp(v1, v2);
+			return verm_cmp(&g1->as.verm, &g2->as.verm);
 		case FONTTYPE:
-			f1 = (Font *)g1;
-			f2 = (Font *)g2;
-			return font_cmp(f1, f2);
+			return font_cmp(&g1->as.font, &g2->as.font);
 		case YDSTYPE:
-			y1 = (Yds *)g1;
-			y2 = (Yds *)g2;
-			return yds_cmp(y1, y2);
+			return yds_cmp(&g1->as.yds, &g2->as.yds);
 		default:
 			return 0;
 	}
@@ -539,21 +547,21 @@ Verm *grade_as_verm(Grade *g)
 {
 	if (!g || g->type != VERMTYPE)
 		return NULL;
-	return (Verm*)g;
+	return &g->as.verm;
 }
 
 Font *grade_as_font(Grade *g)
 {
 	if (!g || g->type != FONTTYPE)
 		return NULL;
-	return (Font*)g;
+	return &g->as.font;
 }
 
 Yds *grade_as_yds(Grade *g)
 {
 	if (!g || g->type != YDSTYPE)
 		return NULL;
-	return (Yds*)g;
+	return &g->as.yds;
 }
 
 void serialized_grade_free(SerializedGrade *grade)
@@ -681,11 +689,11 @@ SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
 {
 	switch (grade->type) {
 		case VERMTYPE:
-			return serialized_grade_from_verm((Verm *)grade, size);
+			return serialized_grade_from_verm(&grade->as.verm, size);
 		case FONTTYPE:
-			return serialized_grade_from_font((Font *)grade, size);
+			return serialized_grade_from_font(&grade->as.font, size);
 		case YDSTYPE:
-			return serialized_grade_from_yds((Yds *)grade, size);
+			return serialized_grade_from_yds(&grade->as.yds, size);
 		default:
 			return NULL;
 	}
@@ -694,17 +702,34 @@ SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
 Grade *grade_from_serialized_grade_data(uint8_t *buf)
 {
 	uint32_t type;
+	Grade *g;
+
+	if (!buf)
+		return NULL;
 
 	type = serialized_grade_data_read_uint32_t(buf);
 
+	g = malloc(sizeof(Grade));
+	if (!g)
+		return NULL;
+
+	g->type = type;
+
 	switch (type) {
 		case VERMTYPE:
-			return (Grade *)verm_from_serialized_grade_data(buf, NULL);
+			g->as.verm.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
+			return g;
+
 		case FONTTYPE:
-			return (Grade *)font_from_serialized_grade_data(buf, NULL);
+			g->as.font.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
+			return g;
+
 		case YDSTYPE:
-			return (Grade *)yds_from_serialized_grade_data(buf, NULL);
+			g->as.yds.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
+			return g;
+
 		default:
+			free(g);
 			return NULL;
 	}
 }
@@ -715,7 +740,6 @@ Verm *verm_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	Verm *verm;
 
 	verm = verm_create(0);
-	verm->type = VERMTYPE;
 
 	loc = buf;
 	loc += sizeof(uint32_t); // skip type
@@ -734,7 +758,6 @@ Font *font_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	Font *font;
 
 	font = font_create(0);
-	font->type = FONTTYPE;
 
 	loc = buf;
 	loc += sizeof(uint32_t); // skip type
@@ -753,7 +776,6 @@ Yds *yds_from_serialized_grade_data(const uint8_t *buf, size_t *size)
 	Yds *yds;
 
 	yds = yds_create(0);
-	yds->type = YDSTYPE;
 
 	loc = buf;
 	loc += sizeof(uint32_t); // skip type
