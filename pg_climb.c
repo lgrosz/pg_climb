@@ -110,18 +110,6 @@ int verm_parse(Verm *verm, const char *str)
 	return 0;
 }
 
-Verm *verm_from_string(const char *str)
-{
-	Verm *verm = verm_create(0);
-
-	if (verm_parse(verm, str) != 0) {
-		verm_free(verm);
-		verm = NULL;
-	}
-
-	return verm;
-}
-
 char *verm_format(const Verm *verm)
 {
 	char	*str;
@@ -243,18 +231,6 @@ int font_parse(Font *font, const char *str)
 
 	font->value = value;
 	return 0;
-}
-
-Font *font_from_string(const char *str)
-{
-	Font *font = font_create(0);
-
-	if (font_parse(font, str) != 0) {
-		font_free(font);
-		font = NULL;
-	}
-
-	return font;
 }
 
 char *font_format(const Font *font)
@@ -393,18 +369,6 @@ int yds_parse(Yds *yds, const char *str)
 
 	yds->value = value;
 	return 0;
-}
-
-Yds *yds_from_string(const char *str)
-{
-	Yds *yds = yds_create(0);
-
-	if (yds_parse(yds, str) != 0) {
-		yds_free(yds);
-		yds = NULL;
-	}
-
-	return yds;
 }
 
 char *yds_format(const Yds *yds)

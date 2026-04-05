@@ -151,33 +151,21 @@ END_TEST
 
 START_TEST(test_verm_parse)
 {
-	Verm *verm;
-	int ret;
+	Verm verm;
 
-	ret = verm_parse(NULL, NULL);
-	ck_assert_uint_ne(ret, 0);
-	ret = verm_parse(NULL, "");
-	ck_assert_uint_ne(ret, 0);
+	ck_assert(verm_parse(NULL, NULL));
+	ck_assert(verm_parse(NULL, ""));
 
-	// invalid strings
-	verm = verm_from_string("");
-	ck_assert_ptr_null(verm);
-	verm = verm_from_string("v");
-	ck_assert_ptr_null(verm);
-	verm = verm_from_string("b0");
-	ck_assert_ptr_null(verm);
-	verm = verm_from_string("v256");
-	ck_assert_ptr_null(verm);
+	ck_assert(verm_parse(&verm, ""));
+	ck_assert(verm_parse(&verm, "v"));
+	ck_assert(verm_parse(&verm, "b0"));
+	ck_assert(verm_parse(&verm, "v256"));
 
-	// valid strings
-	verm = verm_from_string("v1");
-	ck_assert_ptr_nonnull(verm);
-	ck_assert_uint_eq(verm_get_value(verm), 1);
+	ck_assert(!verm_parse(&verm, "v1"));
+	ck_assert_uint_eq(verm_get_value(&verm), 1);
 
-	ret = verm_parse(verm, "V5");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(verm_get_value(verm), 5);
-	verm_free(verm);
+	ck_assert(!verm_parse(&verm, "v5"));
+	ck_assert_uint_eq(verm_get_value(&verm), 5);
 }
 END_TEST
 
@@ -235,42 +223,27 @@ END_TEST
 
 START_TEST(test_font_parse)
 {
-	Font *font;
-	int ret;
+	Font font;
 
-	ret = font_parse(NULL, NULL);
-	ck_assert_uint_ne(ret, 0);
-	ret = font_parse(NULL, "");
-	ck_assert_uint_ne(ret, 0);
+	ck_assert(font_parse(NULL, NULL));
+	ck_assert(font_parse(NULL, ""));
 
-	// invalid strings
-	font = font_from_string("");
-	ck_assert_ptr_null(font);
-	font = font_from_string("F");
-	ck_assert_ptr_null(font);
-	font = font_from_string("v0");
-	ck_assert_ptr_null(font);
-	font = font_from_string("F6D");
-	ck_assert_ptr_null(font);
+	ck_assert(font_parse(&font, ""));
+	ck_assert(font_parse(&font, "F"));
+	ck_assert(font_parse(&font, "v0"));
+	ck_assert(font_parse(&font, "F6D"));
 
-	// valid strings
-	font = font_from_string("F1");
-	ck_assert_ptr_nonnull(font);
-	ck_assert_uint_eq(font_get_value(font), 0);
+	ck_assert(!font_parse(&font, "F1"));
+	ck_assert_uint_eq(font_get_value(&font), 0);
 
-	ret = font_parse(font, "F3+");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(font_get_value(font), 5);
+	ck_assert(!font_parse(&font, "F3+"));
+	ck_assert_uint_eq(font_get_value(&font), 5);
 
-	ret = font_parse(font, "F6A");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(font_get_value(font), 10);
+	ck_assert(!font_parse(&font, "F6A"));
+	ck_assert_uint_eq(font_get_value(&font), 10);
 
-	ret = font_parse(font, "F6A+");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(font_get_value(font), 11);
-
-	font_free(font);
+	ck_assert(!font_parse(&font, "F6A+"));
+	ck_assert_uint_eq(font_get_value(&font), 11);
 }
 END_TEST
 
@@ -334,46 +307,30 @@ END_TEST
 
 START_TEST(test_yds_parse)
 {
-	Yds *yds;
-	int ret;
+	Yds yds;
 
-	ret = yds_parse(NULL, NULL);
-	ck_assert_uint_ne(ret, 0);
-	ret = yds_parse(NULL, "");
-	ck_assert_uint_ne(ret, 0);
+	ck_assert(yds_parse(NULL, NULL));
+	ck_assert(yds_parse(NULL, ""));
 
-	// invalid strings
-	yds = yds_from_string("");
-	ck_assert_ptr_null(yds);
-	yds = yds_from_string("5.");
-	ck_assert_ptr_null(yds);
-	yds = yds_from_string("f7a");
-	ck_assert_ptr_null(yds);
-	yds = yds_from_string("5.9a");
-	ck_assert_ptr_null(yds);
+	ck_assert(yds_parse(&yds, ""));
+	ck_assert(yds_parse(&yds, "5."));
+	ck_assert(yds_parse(&yds, "f7a"));
+	ck_assert(yds_parse(&yds, "5.9a"));
 
-	// valid strings
-	yds = yds_from_string("5.1");
-	ck_assert_ptr_nonnull(yds);
-	ck_assert_uint_eq(yds_get_value(yds), 0);
+	ck_assert(!yds_parse(&yds, "5.1"));
+	ck_assert_uint_eq(yds_get_value(&yds), 0);
 
-	ret = yds_parse(yds, "5.9");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(yds_get_value(yds), 8);
+	ck_assert(!yds_parse(&yds, "5.9"));
+	ck_assert_uint_eq(yds_get_value(&yds), 8);
 
-	ret = yds_parse(yds, "5.10a");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(yds_get_value(yds), 9);
+	ck_assert(!yds_parse(&yds, "5.10a"));
+	ck_assert_uint_eq(yds_get_value(&yds), 9);
 
-	ret = yds_parse(yds, "5.10c");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(yds_get_value(yds), 11);
+	ck_assert(!yds_parse(&yds, "5.10c"));
+	ck_assert_uint_eq(yds_get_value(&yds), 11);
 
-	ret = yds_parse(yds, "5.11a");
-	ck_assert_int_eq(ret, 0);
-	ck_assert_uint_eq(yds_get_value(yds), 13);
-
-	yds_free(yds);
+	ck_assert(!yds_parse(&yds, "5.11a"));
+	ck_assert_uint_eq(yds_get_value(&yds), 13);
 }
 END_TEST
 
