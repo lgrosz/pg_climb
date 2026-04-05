@@ -36,8 +36,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, VERMTYPE);
 
-	// TODO a casting/function may be nice here
-	verm = (Verm*)grade;
+	verm = grade_as_verm(grade);
+	ck_assert_ptr_nonnull(verm);
 	ck_assert_uint_eq(verm_get_value(verm), 6);
 
 	string = grade_to_string(grade);
@@ -50,8 +50,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, FONTTYPE);
 
-	// TODO a casting/function may be nice here
-	font = (Font*)grade;
+	font = grade_as_font(grade);
+	ck_assert_ptr_nonnull(font);
 	ck_assert_uint_eq(font_get_value(font), 21);
 
 	string = grade_to_string(grade);
@@ -64,8 +64,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, YDSTYPE);
 
-	// TODO a casting/function may be nice here
-	yds = (Yds*)grade;
+	yds = grade_as_yds(grade);
+	ck_assert_ptr_nonnull(yds);
 	ck_assert_uint_eq(yds_get_value(yds), 22);
 
 	string = grade_to_string(grade);
@@ -581,7 +581,8 @@ START_TEST(test_serial_grade)
 	grade = grade_from_serialized(ser);
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, VERMTYPE);
-	verm = (Verm*)grade;
+	verm = grade_as_verm(grade);
+	ck_assert_ptr_nonnull(verm);
 	ck_assert_uint_eq(verm_get_value(verm), 6);
 
 	serialized_grade_free(ser);
@@ -604,7 +605,8 @@ START_TEST(test_serial_grade)
 	grade = grade_from_serialized(ser);
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, FONTTYPE);
-	font = (Font*)grade;
+	font = grade_as_font(grade);
+	ck_assert_ptr_nonnull(font);
 	ck_assert_uint_eq(font_get_value(font), 22);
 
 	serialized_grade_free(ser);
@@ -627,7 +629,8 @@ START_TEST(test_serial_grade)
 	grade = grade_from_serialized(ser);
 	ck_assert_ptr_nonnull(grade);
 	ck_assert_uint_eq(grade->type, YDSTYPE);
-	yds = (Yds*)grade;
+	yds = grade_as_yds(grade);
+	ck_assert_ptr_nonnull(yds);
 	ck_assert_uint_eq(yds_get_value(yds), 14);
 
 	serialized_grade_free(ser);

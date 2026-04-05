@@ -535,6 +535,27 @@ int grade_cmp(const Grade *g1, const Grade *g2)
 	}
 }
 
+Verm *grade_as_verm(Grade *g)
+{
+	if (!g || g->type != VERMTYPE)
+		return NULL;
+	return (Verm*)g;
+}
+
+Font *grade_as_font(Grade *g)
+{
+	if (!g || g->type != FONTTYPE)
+		return NULL;
+	return (Font*)g;
+}
+
+Yds *grade_as_yds(Grade *g)
+{
+	if (!g || g->type != YDSTYPE)
+		return NULL;
+	return (Yds*)g;
+}
+
 void serialized_grade_free(SerializedGrade *grade)
 {
 	free(grade);
