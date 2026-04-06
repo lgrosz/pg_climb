@@ -172,25 +172,19 @@ END_TEST
 START_TEST(test_verm_format)
 {
 	Verm verm;
-	char *string;
+	char string[16];
 
-	ck_assert_ptr_null(verm_format(NULL));
-
-	// valid strings
 	verm_set_value(&verm, 0);
-	string = verm_format(&verm);
+	ck_assert_int_eq(verm_format(&verm, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "V0");
-	free(string);
 
 	verm_set_value(&verm, 8);
-	string = verm_format(&verm);
+	ck_assert_int_eq(verm_format(&verm, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "V8");
-	free(string);
 
 	verm_set_value(&verm, 12);
-	string = verm_format(&verm);
+	ck_assert_int_eq(verm_format(&verm, string, sizeof(string)), 3);
 	ck_assert_str_eq(string, "V12");
-	free(string);
 }
 
 START_TEST(test_verm_cmp)
@@ -250,30 +244,23 @@ END_TEST
 START_TEST(test_font_format)
 {
 	Font font;
-	char *string;
+	char string[16];
 
-	ck_assert_ptr_null(font_format(NULL));
-
-	// valid strings
 	font_set_value(&font, 0);
-	string = font_format(&font);
+	ck_assert_int_eq(font_format(&font, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "F1");
-	free(string);
 
 	font_set_value(&font, 5);
-	string = font_format(&font);
+	ck_assert_int_eq(font_format(&font, string, sizeof(string)), 3);
 	ck_assert_str_eq(string, "F3+");
-	free(string);
 
 	font_set_value(&font, 10);
-	string = font_format(&font);
+	ck_assert_int_eq(font_format(&font, string, sizeof(string)), 3);
 	ck_assert_str_eq(string, "F6A");
-	free(string);
 
 	font_set_value(&font, 11);
-	string = font_format(&font);
+	ck_assert_int_eq(font_format(&font, string, sizeof(string)), 4);
 	ck_assert_str_eq(string, "F6A+");
-	free(string);
 }
 END_TEST
 
@@ -337,35 +324,27 @@ END_TEST
 START_TEST(test_yds_format)
 {
 	Yds yds;
-	char *string;
+	char string[16];
 
-	ck_assert_ptr_null(yds_format(NULL));
-
-	// valid strings
 	yds_set_value(&yds, 0);
-	string = yds_format(&yds);
+	ck_assert_int_eq(yds_format(&yds, string, sizeof(string)), 3);
 	ck_assert_str_eq(string, "5.1");
-	free(string);
 
 	yds_set_value(&yds, 5);
-	string = yds_format(&yds);
+	ck_assert_int_eq(yds_format(&yds, string, sizeof(string)), 3);
 	ck_assert_str_eq(string, "5.6");
-	free(string);
 
 	yds_set_value(&yds, 9);
-	string = yds_format(&yds);
+	ck_assert_int_eq(yds_format(&yds, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.10a");
-	free(string);
 
 	yds_set_value(&yds, 11);
-	string = yds_format(&yds);
+	ck_assert_int_eq(yds_format(&yds, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.10c");
-	free(string);
 
 	yds_set_value(&yds, 13);
-	string = yds_format(&yds);
+	ck_assert_int_eq(yds_format(&yds, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.11a");
-	free(string);
 }
 END_TEST
 

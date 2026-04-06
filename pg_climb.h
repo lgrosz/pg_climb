@@ -64,21 +64,21 @@ int verm_cmp(const Verm *v1, const Verm *v2);
 uint8_t verm_get_value(const Verm *verm);
 void verm_set_value(Verm *verm, uint8_t value);
 int verm_parse(Verm *verm, const char *str);
-char *verm_format(const Verm *verm);
+int verm_format(const Verm *verm, char *, size_t);
 
 // Font Functions
 int font_cmp(const Font *f1, const Font *f2);
 uint8_t font_get_value(const Font *font);
 void font_set_value(Font *font, uint8_t value);
 int font_parse(Font *font, const char *str);
-char *font_format(const Font *font);
+int font_format(const Font *font, char *, size_t);
 
 // YDS Functions
 int yds_cmp(const Yds *y1, const Yds *y2);
 uint8_t yds_get_value(const Yds *yds);
 void yds_set_value(Yds *yds, uint8_t value);
 int yds_parse(Yds *yds, const char *str);
-char *yds_format(const Yds *yds);
+int yds_format(const Yds *yds, char *, size_t);
 
 // Grade Functions
 Grade *grade_from_string(const char *str, uint32_t type_hint);
