@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Changed
+
+- Reduced heap usage.
+
+### Fixed
+- _All_ heap usage from the pg module is now governed by Postgres and allocated
+  through palloc.
+
 ## [1.0.0] - 2025-08-17
 
 ### Added
