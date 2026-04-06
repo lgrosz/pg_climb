@@ -133,7 +133,7 @@ Datum
 GRADE_typmod_out(PG_FUNCTION_ARGS)
 {
 	StringInfoData	si;
-	char	*typmod_str;
+	const char	*typmod_str;
 	int32_t	typmod = PG_GETARG_INT32(0);
 
 	if (typmod < 0)
@@ -142,16 +142,15 @@ GRADE_typmod_out(PG_FUNCTION_ARGS)
 	initStringInfo(&si);
 	appendStringInfoChar(&si, '(');
 
-	if (typmod_string(&typmod_str, typmod) != 0) {
-		ereport(WARNING, (errmsg("failed to stringify typmod")));
-		typmod_str = malloc(12); // enough
-		sprintf(typmod_str, "%d", typmod);
+	typmod_str = typmod_string(typmod);
+
+	if (typmod_str) {
+		appendStringInfoString(&si, typmod_str);
+	} else {
+		appendStringInfo(&si, "%d", typmod);
 	}
 
-	appendStringInfoString(&si, typmod_str);
 	appendStringInfoChar(&si, ')');
-
-	free(typmod_str);
 
 	PG_RETURN_CSTRING(si.data);
 }
@@ -329,7 +328,7 @@ GRADE_type(PG_FUNCTION_ARGS)
 {
 	Grade *grade;
 	SerializedGrade *serialized;
-	char *type_str;
+	const char *type_str;
 	text *type_text;
 	char *bytes;
 
@@ -339,9 +338,9 @@ GRADE_type(PG_FUNCTION_ARGS)
 	grade = grade_from_serialized(serialized);
 
         // NOTE Grade.type _is_ typmod for valid types (for now)
-        if (typmod_string(&type_str, grade->type) == 0) {
+	type_str = typmod_string(grade->type);
+        if (type_str) {
 		type_text = cstring_to_text(type_str);
-		free(type_str);
 	} else {
 		type_text = cstring_to_text("");
 	}

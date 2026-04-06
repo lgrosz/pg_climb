@@ -35,28 +35,18 @@ uint32_t grade_type_from_typmod(const char *str)
 	}
 }
 
-int typmod_string(char **str, int32_t typmod)
+const char *typmod_string(int32_t typmod)
 {
-	int ret;
-
 	switch (typmod) {
 		case VERMTYPE:
-			*str = strdup("verm");
-			ret = 0;
-			break;
+			return "verm";
 		case FONTTYPE:
-			*str = strdup("font");
-			ret = 0;
-			break;
+			return "font";
 		case YDSTYPE:
-			*str = strdup("yds");
-			ret = 0;
-			break;
-		default:
-			ret = 1;
+			return "yds";
 	}
 
-	return ret;
+	return NULL;
 }
 
 int verm_cmp(const Verm *v1, const Verm *v2)
