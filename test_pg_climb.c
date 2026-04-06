@@ -114,23 +114,10 @@ END_TEST
 
 START_TEST(test_typmod_string)
 {
-	char *str;
-	int ret;
-
-	ret = typmod_string(&str, ANYTYPE);
-	ck_assert_int_ne(ret, 0);
-
-	ret = typmod_string(&str, VERMTYPE);
-	ck_assert_str_eq(str, "verm");
-	free(str);
-
-	ret = typmod_string(&str, FONTTYPE);
-	ck_assert_str_eq(str, "font");
-	free(str);
-
-	ret = typmod_string(&str, YDSTYPE);
-	ck_assert_str_eq(str, "yds");
-	free(str);
+	ck_assert_ptr_null(typmod_string(ANYTYPE));
+	ck_assert_str_eq(typmod_string(VERMTYPE), "verm");
+	ck_assert_str_eq(typmod_string(FONTTYPE), "font");
+	ck_assert_str_eq(typmod_string(YDSTYPE), "yds");
 }
 END_TEST
 

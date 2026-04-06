@@ -57,7 +57,7 @@ typedef struct {
 // Type Functions
 const char *grade_type_name(uint32_t type);
 uint32_t grade_type_from_typmod(const char *);
-int typmod_string(char **, int32_t typmod);
+const char *typmod_string(int32_t typmod);
 
 // Verm Functions
 int verm_cmp(const Verm *v1, const Verm *v2);
