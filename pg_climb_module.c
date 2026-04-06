@@ -78,16 +78,17 @@ GRADE_out(PG_FUNCTION_ARGS)
 {
 	SerializedGrade	*serialized = PG_GETARG_SERGRADE_P(0);
 	Grade *grade = grade_from_serialized(serialized);
-	char *raw;
+	char raw[16];
 	char *pgstr;
 
 	if (!grade)
 		ereport(ERROR,(errmsg("Failed to deserialized grade data")));
 
-	raw = grade_to_string(grade);
+	if (grade_format(grade, raw, sizeof(raw)) < 0)
+		ereport(ERROR, (errmsg("Failed to stringify grade")));
+
 	pgstr = pstrdup(raw);
 
-	free(raw);
 	grade_free(grade);
 
 	PG_RETURN_CSTRING(pgstr);

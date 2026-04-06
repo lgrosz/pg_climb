@@ -27,7 +27,7 @@ START_TEST(test_grade_strings)
 	Verm *verm;
 	Font *font;
 	Yds *yds;
-	char *string;
+	char string[16];
 
 	grade = grade_from_string("", ANYTYPE);
 	ck_assert_ptr_null(grade);
@@ -40,10 +40,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(verm);
 	ck_assert_uint_eq(verm_get_value(verm), 6);
 
-	string = grade_to_string(grade);
-	ck_assert_ptr_nonnull(string);
+	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "V6");
-	free(string);
 	free(grade);
 
 	grade = grade_from_string("F7C+", ANYTYPE);
@@ -54,10 +52,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(font);
 	ck_assert_uint_eq(font_get_value(font), 21);
 
-	string = grade_to_string(grade);
-	ck_assert_ptr_nonnull(string);
+	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 4);
 	ck_assert_str_eq(string, "F7C+");
-	free(string);
 	free(grade);
 
 	grade = grade_from_string("5.13b", ANYTYPE);
@@ -68,10 +64,8 @@ START_TEST(test_grade_strings)
 	ck_assert_ptr_nonnull(yds);
 	ck_assert_uint_eq(yds_get_value(yds), 22);
 
-	string = grade_to_string(grade);
-	ck_assert_ptr_nonnull(string);
+	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.13b");
-	free(string);
 	free(grade);
 
 	// These should fail because of the hint, even though they are valid for other types
