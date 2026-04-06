@@ -407,39 +407,21 @@ void grade_free(Grade *grade)
 	free(grade);
 }
 
-char *grade_to_string(Grade *grade)
+int grade_format(const Grade *grade, char *str, size_t size)
 {
-	char *str;
-	int len;
-
-	if (grade == NULL)
-		return NULL;
-
-	str = malloc(16 * sizeof(char));
-	if (str == NULL)
-		return NULL;
+	if (grade == NULL || str == NULL || size == 0)
+		return -1;
 
 	switch (grade->type) {
 		case VERMTYPE:
-			len = verm_format(&grade->as.verm, str, 16);
-			break;
+			return verm_format(&grade->as.verm, str, size);
 		case FONTTYPE:
-			len = font_format(&grade->as.font, str, 16);
-			break;
+			return font_format(&grade->as.font, str, size);
 		case YDSTYPE:
-			len = yds_format(&grade->as.yds, str, 16);
-			break;
-		default:
-			free(str);
-			return NULL;
+			return yds_format(&grade->as.yds, str, 16);
 	}
 
-	if (len < 0) {
-		free(str);
-		return NULL;
-	}
-
-	return str;
+	return -1;
 }
 
 int grade_cmp(const Grade *g1, const Grade *g2)
