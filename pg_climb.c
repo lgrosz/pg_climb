@@ -97,17 +97,12 @@ int verm_parse(Verm *verm, const char *str)
 	return 0;
 }
 
-char *verm_format(const Verm *verm)
+int verm_format(const Verm *verm, char *str, size_t size)
 {
-	char	*str;
+	if (verm == NULL || str == NULL || size == 0)
+		return -1;
 
-	if (verm == NULL)
-		return NULL;
-
-	str = malloc(5 * sizeof(char));
-	snprintf(str, 5, "V%d", verm_get_value(verm));
-
-	return str;
+	return snprintf(str, size, "V%d", verm_get_value(verm));
 }
 
 int font_cmp(const Font *f1, const Font *f2)
@@ -207,45 +202,35 @@ int font_parse(Font *font, const char *str)
 	return 0;
 }
 
-char *font_format(const Font *font)
+int font_format(const Font *font, char *str, size_t size)
 {
-	char	*str;
-	char	*cur;
 	char	m;
-	const char	mods[]= {'A', 'A', 'B', 'B', 'C', 'C'};
+	const char	mods[] = { 'A', 'A', 'B', 'B', 'C', 'C' };
 	int	m_i;
 	int	p;
 	uint8_t	n;
 	uint8_t	value;
 
-	if (font == NULL)
-		return NULL;
+	if (font == NULL || str == NULL || size == 0)
+		return -1;
 
 	value = font->value;
 
 	if (value < 10) {
 		n = (value / 2) + 1;
-		p = value % 2 == 1;
-	} else {
-		n = 6 + (value - 10) / 6;
-		m_i = (value - 10) % 6;
-		m = mods[m_i];
-		p = (m_i % 2 == 1);
+		p = (value % 2);
+		return snprintf(str, size, p ? "F%d+" : "F%d", n);
 	}
 
-	// 6 is the largest potential strlen for a uint8_t
-	str = malloc(6 * sizeof(char));
+	n = 6 + (value - 10) / 6;
 
-	cur = str;
-	cur += snprintf(cur, 4, "F%d", n);
+	m_i = (value - 10) % 6;
+	m = mods[m_i];
+	p = (m_i % 2);
 
-	if (value > 9)
-		cur += snprintf(cur, 2, "%c", m);
-
-	if (p)
-		snprintf(cur, 2, "+");
-
-	return str;
+	return snprintf(str, size,
+		 p ? "F%d%c+" : "F%d%c",
+		 n, m);
 }
 
 int yds_cmp(const Yds *y1, const Yds *y2)
@@ -332,39 +317,28 @@ int yds_parse(Yds *yds, const char *str)
 	return 0;
 }
 
-char *yds_format(const Yds *yds)
+int yds_format(const Yds *yds, char *str, size_t size)
 {
-	char	*str;
-	char	*cur;
 	char	m;
 	const char	mods[]= {'a', 'b', 'c', 'd'};
 	int	m_i;
 	uint8_t	n;
 	uint8_t	value;
 
-	if (yds == NULL)
-		return NULL;
+	if (yds == NULL || str == NULL || size == 0)
+		return -1;
 
 	value = yds->value;
 
 	if (value < 9) {
 		n = value + 1;
+		return snprintf(str, size, "5.%d", n);
 	} else {
 		n = 10 + (value - 9) / 4;
 		m_i = (value - 9) % 4;
 		m = mods[m_i];
+		return snprintf(str, size, "5.%d%c", n, m);
 	}
-
-	// 6 is the largest potential strlen for a uint8_t
-	str = malloc(6 * sizeof(char));
-
-	cur = str;
-	cur += snprintf(cur, 5, "5.%d", n);
-
-	if (n > 9) // >5.9
-		cur += snprintf(cur, 2, "%c", m);
-
-	return str;
 }
 
 Grade *grade_from_string(const char *str, uint32_t type_hint)
@@ -435,16 +409,37 @@ void grade_free(Grade *grade)
 
 char *grade_to_string(Grade *grade)
 {
+	char *str;
+	int len;
+
+	if (grade == NULL)
+		return NULL;
+
+	str = malloc(16 * sizeof(char));
+	if (str == NULL)
+		return NULL;
+
 	switch (grade->type) {
 		case VERMTYPE:
-			return verm_format(&grade->as.verm);
+			len = verm_format(&grade->as.verm, str, 16);
+			break;
 		case FONTTYPE:
-			return font_format(&grade->as.font);
+			len = font_format(&grade->as.font, str, 16);
+			break;
 		case YDSTYPE:
-			return yds_format(&grade->as.yds);
+			len = yds_format(&grade->as.yds, str, 16);
+			break;
 		default:
+			free(str);
 			return NULL;
 	}
+
+	if (len < 0) {
+		free(str);
+		return NULL;
+	}
+
+	return str;
 }
 
 int grade_cmp(const Grade *g1, const Grade *g2)
