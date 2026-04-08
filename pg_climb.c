@@ -441,210 +441,66 @@ Yds *grade_as_yds(Grade *g)
 	return &g->as.yds;
 }
 
-void serialized_grade_free(SerializedGrade *grade)
+size_t grade_serialize(const Grade *g, uint8_t *buf, size_t cap)
 {
-	free(grade);
-}
+	uint32_t type = g->type;
+	size_t needed = sizeof(uint32_t) + sizeof(uint8_t);
 
-static size_t size_of_uint8_grade()
-{
-	// type + *->value
-	return sizeof(uint32_t) + sizeof(uint8_t);
-}
+	if (buf == NULL)
+		return needed;
 
-size_t serialized_grade_size_from_verm(void)
-{
-	return size_of_uint8_grade();
-}
+	if (cap < needed)
+		return 0;
 
-SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size)
-{
-	SerializedGrade	*grade;
-	size_t	actual_size;
-	size_t	expected_size;
-	uint8_t	*ptr;
-
-	expected_size = serialized_grade_size_from_verm();
-	ptr = malloc(expected_size);
-	grade = (SerializedGrade *)ptr;
-
-	// TODO here is where flags could be added to ptr
-
-	ptr += serialized_grade_buffer_write_verm(verm, ptr);
-
-	actual_size = ptr - (uint8_t*)grade;
-
-	assert(actual_size == expected_size);
-
-	if (size)
-		*size = expected_size;
-
-        return grade;
-}
-
-SerializedGrade *serialized_grade_from_font(const Font *font, size_t *size)
-{
-	SerializedGrade	*grade;
-	size_t	actual_size;
-	size_t	expected_size;
-	uint8_t	*ptr;
-
-	expected_size = serialized_grade_size_from_font();
-	ptr = malloc(expected_size);
-	grade = (SerializedGrade *)ptr;
-
-	// TODO here is where flags could be added to ptr
-
-	ptr += serialized_grade_buffer_write_font(font, ptr);
-
-	actual_size = ptr - (uint8_t*)grade;
-
-	assert(actual_size == expected_size);
-
-	if (size)
-		*size = expected_size;
-
-        return grade;
-}
-
-size_t serialized_grade_size_from_font()
-{
-	return size_of_uint8_grade();
-}
-
-size_t serialized_grade_size_from_yds(void)
-{
-	return size_of_uint8_grade();
-}
-
-SerializedGrade *serialized_grade_from_yds(const Yds *yds, size_t *size)
-{
-	SerializedGrade	*grade;
-	size_t	actual_size;
-	size_t	expected_size;
-	uint8_t	*ptr;
-
-	expected_size = serialized_grade_size_from_yds();
-	ptr = malloc(expected_size);
-	grade = (SerializedGrade *)ptr;
-
-	// TODO here is where flags could be added to ptr
-
-	ptr += serialized_grade_buffer_write_yds(yds, ptr);
-
-	actual_size = ptr - (uint8_t*)grade;
-
-	assert(actual_size == expected_size);
-
-	if (size)
-		*size = expected_size;
-
-        return grade;
-}
-
-int grade_from_serialized(Grade *g, const SerializedGrade *serialized)
-{
-	return grade_from_serialized_grade_data(g, (uint8_t *)serialized->data);
-}
-
-int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2)
-{
-	int ret;
-	Grade g1;
-	Grade g2;
-
-	grade_from_serialized(&g1, sg1);
-	grade_from_serialized(&g2, sg2);
-	ret = grade_cmp(&g1, &g2);
-
-	return ret;
-}
-
-SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
-{
-	switch (grade->type) {
-		case VERMTYPE:
-			return serialized_grade_from_verm(&grade->as.verm, size);
-		case FONTTYPE:
-			return serialized_grade_from_font(&grade->as.font, size);
-		case YDSTYPE:
-			return serialized_grade_from_yds(&grade->as.yds, size);
-		default:
-			return NULL;
-	}
-}
-
-int grade_from_serialized_grade_data(Grade *g, uint8_t *buf)
-{
-	uint32_t type;
-
-	if (!g || !buf)
-		return 1;
-
-	type = serialized_grade_data_read_uint32_t(buf);
-
-	g->type = type;
+	memcpy(buf, &type, sizeof(uint32_t));
 
 	switch (type) {
-		case VERMTYPE:
-			g->as.verm.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return 0;
-
-		case FONTTYPE:
-			g->as.font.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return 0;
-
-		case YDSTYPE:
-			g->as.yds.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return 0;
+	case VERMTYPE:
+		buf[4] = verm_get_value(&g->as.verm);
+		break;
+	case FONTTYPE:
+		buf[4] = font_get_value(&g->as.font);
+		break;
+	case YDSTYPE:
+		buf[4] = yds_get_value(&g->as.yds);
+		break;
+	default:
+		return 0;
 	}
 
-	return 1;
+	return needed;
 }
 
-uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)
+int grade_deserialize(Grade *g, const uint8_t *buf, size_t len, size_t *consumed)
 {
-	return *((uint32_t*)buf);
-}
+	uint32_t type;
+	uint8_t value;
+	size_t needed = sizeof(uint32_t) + sizeof(uint8_t);
 
-uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data)
-{
-	return *((uint8_t*)data);
-}
+	if (len < needed)
+		return -1;
 
-static size_t buffer_write_uint8_t(uint8_t *buf, uint8_t data)
-{
-	memcpy(buf, &data, sizeof(data));
-	return sizeof(data);
-}
+	memcpy(&type, buf, sizeof(uint32_t));
 
-static size_t buffer_write_uint32_t(uint8_t *buf, uint32_t data)
-{
-	memcpy(buf, &data, sizeof(data));
-	return sizeof(data);
-}
+	g->type = type;
+	value = buf[4];
 
-static size_t buffer_write_uint8_grade(uint8_t *buf, uint32_t type, uint8_t value)
-{
-	uint8_t *loc = buf;
+	switch (type) {
+	case VERMTYPE:
+		verm_set_value(&g->as.verm, value);
+		break;
+	case FONTTYPE:
+		font_set_value(&g->as.font, value);
+		break;
+	case YDSTYPE:
+		yds_set_value(&g->as.yds, value);
+		break;
+	default:
+		return -1;
+	}
 
-	loc += buffer_write_uint32_t(loc, type);
-	loc += buffer_write_uint8_t(loc, value);
+	if (consumed)
+		*consumed = needed;
 
-	return loc - buf;
-}
-
-size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf)
-{
-	return buffer_write_uint8_grade(buf, VERMTYPE, verm_get_value(verm));
-}
-
-size_t serialized_grade_buffer_write_font(const Font *font, uint8_t *buf)
-{
-	return buffer_write_uint8_grade(buf, FONTTYPE, font_get_value(font));
-}
-
-size_t serialized_grade_buffer_write_yds(const Yds *yds, uint8_t *buf)
-{
-	return buffer_write_uint8_grade(buf, YDSTYPE, yds_get_value(yds));
+	return 0;
 }

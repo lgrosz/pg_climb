@@ -328,156 +328,85 @@ END_TEST
 
 START_TEST(test_serial_verm)
 {
-	Verm verm;
-	SerializedGrade *ser;
-	uint8_t *data;
+	Grade grade;
 	size_t size;
 
-	// constant size 4(type)+1(value)
-	ck_assert_uint_eq(serialized_grade_size_from_verm(), 5);
+	grade.type = VERMTYPE;
+	verm_set_value(&grade.as.verm, 5);
 
-	// serialize
-	verm_set_value(&verm, 5);
-	ser = serialized_grade_from_verm(&verm, &size);
-	ck_assert_ptr_nonnull(ser);
+	size = grade_serialize(&grade, NULL, 0);
 	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), VERMTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 5);
 
-	serialized_grade_free(ser);
+	uint8_t buf[size];
+
+	ck_assert_uint_eq(grade_serialize(&grade, buf, size), size);
+	ck_assert_uint_eq(*(uint32_t *)buf, VERMTYPE);
+	ck_assert_uint_eq(buf[4], 5);
+
+	Grade out;
+	size_t consumed;
+
+	ck_assert_int_eq(grade_deserialize(&out, buf, size, &consumed), 0);
+	ck_assert_uint_eq(consumed, size);
+
+	ck_assert_uint_eq(out.type, VERMTYPE);
+	ck_assert_uint_eq(out.as.verm.value, 5);
 }
 END_TEST
 
 START_TEST(test_serial_font)
 {
-	Font font;
-	SerializedGrade *ser;
-	uint8_t *data;
+	Grade grade;
 	size_t size;
 
-	// constant size 4(type)+1(value)
-	ck_assert_uint_eq(serialized_grade_size_from_font(), 5);
+	grade.type = FONTTYPE;
+	font_set_value(&grade.as.font, 12);
 
-	// serialize
-	font_set_value(&font, 12);
-	ser = serialized_grade_from_font(&font, &size);
-	ck_assert_ptr_nonnull(ser);
+	size = grade_serialize(&grade, NULL, 0);
 	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), FONTTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 12);
 
-	serialized_grade_free(ser);
+	uint8_t buf[size];
+
+	ck_assert_uint_eq(grade_serialize(&grade, buf, size), size);
+	ck_assert_uint_eq(*(uint32_t *)buf, FONTTYPE);
+	ck_assert_uint_eq(buf[4], 12);
+
+	Grade out;
+	size_t consumed;
+
+	ck_assert_int_eq(grade_deserialize(&out, buf, size, &consumed), 0);
+	ck_assert_uint_eq(consumed, size);
+
+	ck_assert_uint_eq(out.type, FONTTYPE);
+	ck_assert_uint_eq(out.as.verm.value, 12);
 }
 END_TEST
 
 START_TEST(test_serial_yds)
 {
-	Yds yds;
-	SerializedGrade *ser;
-	uint8_t *data;
-	size_t size;
-
-	// constant size 4(type)+1(value)
-	ck_assert_uint_eq(serialized_grade_size_from_yds(), 5);
-
-	// serialize
-	yds_set_value(&yds, 12);
-	ser = serialized_grade_from_yds(&yds, &size);
-	ck_assert_ptr_nonnull(ser);
-	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), YDSTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 12);
-
-	serialized_grade_free(ser);
-}
-END_TEST
-
-START_TEST(test_serial_grade)
-{
 	Grade grade;
-	SerializedGrade *ser;
-	Verm *verm;
-	Font *font;
-	Yds *yds;
-	uint8_t *data;
 	size_t size;
 
-	// verm
-	// serialize
-	ck_assert_int_eq(grade_from_string(&grade, "V6", ANYTYPE), 0);
-	ser = serialized_grade_from_grade(&grade, &size);
-	ck_assert_ptr_nonnull(ser);
+	grade.type = YDSTYPE;
+	yds_set_value(&grade.as.yds, 12);
+
+	size = grade_serialize(&grade, NULL, 0);
 	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), VERMTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 6);
 
-	// deserialize
-	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
-	ck_assert_uint_eq(grade.type, VERMTYPE);
-	verm = grade_as_verm(&grade);
-	ck_assert_ptr_nonnull(verm);
-	ck_assert_uint_eq(verm_get_value(verm), 6);
+	uint8_t buf[size];
 
-	serialized_grade_free(ser);
+	ck_assert_uint_eq(grade_serialize(&grade, buf, size), size);
+	ck_assert_uint_eq(*(uint32_t *)buf, YDSTYPE);
+	ck_assert_uint_eq(buf[4], 12);
 
-	// font
-	// serialize
-	ck_assert_int_eq(grade_from_string(&grade, "F8A", ANYTYPE), 0);
-	ser = serialized_grade_from_grade(&grade, &size);
-	ck_assert_ptr_nonnull(ser);
-	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), FONTTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 22);
+	Grade out;
+	size_t consumed;
 
-	// deserialize
-	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
-	ck_assert_uint_eq(grade.type, FONTTYPE);
-	font = grade_as_font(&grade);
-	ck_assert_ptr_nonnull(font);
-	ck_assert_uint_eq(font_get_value(font), 22);
+	ck_assert_int_eq(grade_deserialize(&out, buf, size, &consumed), 0);
+	ck_assert_uint_eq(consumed, size);
 
-	serialized_grade_free(ser);
-
-	// yds
-	// serialize
-	ck_assert_int_eq(grade_from_string(&grade, "5.11b", ANYTYPE), 0);
-	ser = serialized_grade_from_grade(&grade, &size);
-	ck_assert_ptr_nonnull(ser);
-	ck_assert_uint_eq(size, 5);
-	data = (uint8_t*)ser->data;
-	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), YDSTYPE);
-	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 14);
-
-	// deserialize
-	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
-	ck_assert_uint_eq(grade.type, YDSTYPE);
-	yds = grade_as_yds(&grade);
-	ck_assert_ptr_nonnull(yds);
-	ck_assert_uint_eq(yds_get_value(yds), 14);
-
-	serialized_grade_free(ser);
-}
-
-START_TEST(test_serial_cmp)
-{
-	Grade g1;
-	Grade g2;
-	SerializedGrade *sg1;
-	SerializedGrade *sg2;
-
-	ck_assert_int_eq(grade_from_string(&g1, "V6", ANYTYPE), 0);
-	ck_assert_int_eq(grade_from_string(&g2, "V7", ANYTYPE), 0);
-	sg1 = serialized_grade_from_grade(&g1, NULL);
-	sg2 = serialized_grade_from_grade(&g2, NULL);
-
-	ck_assert_int_le(serialized_grade_cmp(sg1, sg2), 0);
-	serialized_grade_free(sg1);
-	serialized_grade_free(sg2);
+	ck_assert_uint_eq(out.type, YDSTYPE);
+	ck_assert_uint_eq(out.as.yds.value, 12);
 }
 END_TEST
 
@@ -525,8 +454,6 @@ static Suite* pg_climb_suite(void)
 	tcase_add_test(tc_serial, test_serial_verm);
 	tcase_add_test(tc_serial, test_serial_font);
 	tcase_add_test(tc_serial, test_serial_yds);
-	tcase_add_test(tc_serial, test_serial_grade);
-	tcase_add_test(tc_serial, test_serial_cmp);
 	suite_add_tcase(s, tc_serial);
 
 	return s;
