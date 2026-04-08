@@ -34,26 +34,6 @@ typedef struct {
     } as;
 } Grade;
 
-// This is a serialized grade. Some header data and flags can be added to the
-// structure to determine how it should be interpreted, but for now it's just
-// data. Here is how the data should be formatted.
-//
-// Open-ended, discrete scales (like the V-scale and Font-scale) are just
-// represented by a single integer despite appearinging like they contain more
-// than one component.
-//
-// <verm-type>
-// [uint8_t]
-//
-// <font-type>
-// [uint8_t]
-//
-// <yds-type>
-// [uint8_t]
-typedef struct {
-	char data[1];
-} SerializedGrade;
-
 // Type Functions
 const char *grade_type_name(uint32_t type);
 uint32_t grade_type_from_typmod(const char *);
@@ -88,24 +68,29 @@ Verm *grade_as_verm(Grade *g);
 Font *grade_as_font(Grade *g);
 Yds *grade_as_yds(Grade *g);
 
-// Serialization Functions
-void serialized_grade_free(SerializedGrade *grade);
-size_t serialized_grade_size_from_verm(void);
-SerializedGrade *serialized_grade_from_verm(const Verm *verm, size_t *size);
-size_t serialized_grade_size_from_font(void);
-SerializedGrade *serialized_grade_from_font(const Font *font, size_t *size);
-size_t serialized_grade_size_from_yds(void);
-SerializedGrade *serialized_grade_from_yds(const Yds *yds, size_t *size);
-SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size);
-int grade_from_serialized(Grade *, const SerializedGrade *serialized);
-int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2);
+// ## Serialization
+//
+// Below describes how different grades are serialized.
+//
+// ### Verm grade
+// ```
+// VERMTYPE
+// [uint8_t]
+// ```
+//
+// ### Font grade
+// ```
+// FONTTYPE
+// [uint8_t]
+// ```
+//
+// ### YDS grade
+// ```
+// YDSTYPE
+// [uint8_t]
+// ```
 
-// Serialization Buffer Functions
-int grade_from_serialized_grade_data(Grade *, uint8_t *buf);
-uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
-uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
-size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
-size_t serialized_grade_buffer_write_font(const Font *font, uint8_t *buf);
-size_t serialized_grade_buffer_write_yds(const Yds *yds, uint8_t *buf);
+size_t grade_serialize(const Grade *, uint8_t *, size_t);
+int grade_deserialize(Grade *, const uint8_t *, size_t, size_t *);
 
 #endif
