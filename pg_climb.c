@@ -331,70 +331,55 @@ int yds_format(const Yds *yds, char *str, size_t size)
 	}
 }
 
-Grade *grade_from_string(const char *str, uint32_t type_hint)
+int grade_from_string(Grade *g, const char *str, uint32_t type_hint)
 {
-	Grade *g;
-
-	if (!str || !*str)
-		return NULL;
-
-	g = malloc(sizeof(Grade));
-	if (!g)
-		return NULL;
+	if (!g|| !str || !*str)
+		return 1;
 
 	if (type_hint == VERMTYPE) {
 		if (verm_parse(&g->as.verm, str) == 0) {
 			g->type = VERMTYPE;
-			return g;
+			return 0;
 		}
 
-		free(g);
-		return NULL;
+		return 1;
 	}
 
 	if (type_hint == FONTTYPE) {
 		if (font_parse(&g->as.font, str) == 0) {
 			g->type = FONTTYPE;
-			return g;
+			return 0;
 		}
 
-		free(g);
-		return NULL;
+		return 1;
 	}
 
 	if (type_hint == YDSTYPE) {
 		if (yds_parse(&g->as.yds, str) == 0) {
 			g->type = YDSTYPE;
-			return g;
+			return 0;
 		}
 
-		free(g);
-		return NULL;
+		return 1;
 	}
 
 	// ANYTYPE
 	if (verm_parse(&g->as.verm, str) == 0) {
 		g->type = VERMTYPE;
-		return g;
+		return 0;
 	}
 
 	if (font_parse(&g->as.font, str) == 0) {
 		g->type = FONTTYPE;
-		return g;
+		return 0;
 	}
 
 	if (yds_parse(&g->as.yds, str) == 0) {
 		g->type = YDSTYPE;
-		return g;
+		return 0;
 	}
 
-	free(g);
-	return NULL;
-}
-
-void grade_free(Grade *grade)
-{
-	free(grade);
+	return 1;
 }
 
 int grade_format(const Grade *grade, char *str, size_t size)
@@ -557,23 +542,21 @@ SerializedGrade *serialized_grade_from_yds(const Yds *yds, size_t *size)
         return grade;
 }
 
-Grade *grade_from_serialized(const SerializedGrade *serialized)
+int grade_from_serialized(Grade *g, const SerializedGrade *serialized)
 {
-	return grade_from_serialized_grade_data((uint8_t *)serialized->data);
+	return grade_from_serialized_grade_data(g, (uint8_t *)serialized->data);
 }
 
 int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2)
 {
 	int ret;
-	Grade *g1;
-	Grade *g2;
+	Grade g1;
+	Grade g2;
 
-	g1 = grade_from_serialized(sg1);
-	g2 = grade_from_serialized(sg2);
-	ret = grade_cmp(g1, g2);
+	grade_from_serialized(&g1, sg1);
+	grade_from_serialized(&g2, sg2);
+	ret = grade_cmp(&g1, &g2);
 
-	grade_free(g1);
-	grade_free(g2);
 	return ret;
 }
 
@@ -591,39 +574,32 @@ SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size)
 	}
 }
 
-Grade *grade_from_serialized_grade_data(uint8_t *buf)
+int grade_from_serialized_grade_data(Grade *g, uint8_t *buf)
 {
 	uint32_t type;
-	Grade *g;
 
-	if (!buf)
-		return NULL;
+	if (!g || !buf)
+		return 1;
 
 	type = serialized_grade_data_read_uint32_t(buf);
-
-	g = malloc(sizeof(Grade));
-	if (!g)
-		return NULL;
 
 	g->type = type;
 
 	switch (type) {
 		case VERMTYPE:
 			g->as.verm.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return g;
+			return 0;
 
 		case FONTTYPE:
 			g->as.font.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return g;
+			return 0;
 
 		case YDSTYPE:
 			g->as.yds.value = serialized_grade_data_read_uint8_t(buf + sizeof(uint32_t));
-			return g;
-
-		default:
-			free(g);
-			return NULL;
+			return 0;
 	}
+
+	return 1;
 }
 
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf)

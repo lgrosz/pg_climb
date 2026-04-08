@@ -34,7 +34,7 @@ PG_FUNCTION_INFO_V1(GRADE_in);
 Datum
 GRADE_in(PG_FUNCTION_ARGS)
 {
-	Grade	*grade;
+	Grade	grade;
 	SerializedGrade	*serialized = NULL;
 	SerializedGrade	*pg_serialized = NULL;
 	char	*input = PG_GETARG_CSTRING(0);
@@ -50,14 +50,14 @@ GRADE_in(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 
-	grade = grade_from_string(input, typmod < 0 ? ANYTYPE : (uint32_t)typmod);
+	;
 
-	if (!grade) {
+	if (grade_from_string(&grade, input, typmod < 0 ? ANYTYPE : (uint32_t)typmod) != 0) {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
 
-	serialized = serialized_grade_from_grade(grade, &size);
+	serialized = serialized_grade_from_grade(&grade, &size);
 
 	// copy to pg context
 	pg_serialized = (SerializedGrade *) palloc(size + VARHDRSZ);
@@ -65,7 +65,6 @@ GRADE_in(PG_FUNCTION_ARGS)
 	// TODO memmove is unecessary _if_ the memory won't overlap
 	memmove((uint8_t*)pg_serialized + VARHDRSZ, serialized, size);
 
-	grade_free(grade);
 	free(serialized);
 
 	PG_RETURN_SERGRADE_P(pg_serialized);
@@ -77,19 +76,17 @@ Datum
 GRADE_out(PG_FUNCTION_ARGS)
 {
 	SerializedGrade	*serialized = PG_GETARG_SERGRADE_P(0);
-	Grade *grade = grade_from_serialized(serialized);
+	Grade grade;
 	char raw[16];
 	char *pgstr;
 
-	if (!grade)
+	if (grade_from_serialized(&grade, serialized) != 0)
 		ereport(ERROR,(errmsg("Failed to deserialized grade data")));
 
-	if (grade_format(grade, raw, sizeof(raw)) < 0)
+	if (grade_format(&grade, raw, sizeof(raw)) < 0)
 		ereport(ERROR, (errmsg("Failed to stringify grade")));
 
 	pgstr = pstrdup(raw);
-
-	grade_free(grade);
 
 	PG_RETURN_CSTRING(pgstr);
 }
@@ -160,7 +157,7 @@ PG_FUNCTION_INFO_V1(GRADE_enforce_typmod);
 Datum
 GRADE_enforce_typmod(PG_FUNCTION_ARGS)
 {
-	Grade *grade;
+	Grade grade;
 	SerializedGrade *serialized;
 	int32_t typmod;
 	void *ret;
@@ -171,19 +168,17 @@ GRADE_enforce_typmod(PG_FUNCTION_ARGS)
 
 	typmod = PG_GETARG_INT32(1);
 
-	grade = grade_from_serialized(serialized);
+	;
 
-	if (!grade)
+	if (grade_from_serialized(&grade, serialized) != 0)
 		ereport(ERROR, errmsg("failed to deserialize grade"));
 
         // TODO there could be a useful conversion here, like converting between
-        // alike grade types (e.g. verm -> font)
+        // alike grade types (e.g. verm -> font), though this likely should be
+        // explicitly request by the user.
 
-        if (grade && typmod != grade->type)
+        if (typmod != grade.type)
 		ereport(ERROR, errmsg("typmod mismatched"));
-
-	if (grade)
-		grade_free(grade);
 
 	PG_RETURN_SERGRADE_P(ret);
 }
@@ -326,7 +321,7 @@ PG_FUNCTION_INFO_V1(GRADE_type);
 Datum
 GRADE_type(PG_FUNCTION_ARGS)
 {
-	Grade *grade;
+	Grade grade;
 	SerializedGrade *serialized;
 	const char *type_str;
 	text *type_text;
@@ -335,17 +330,17 @@ GRADE_type(PG_FUNCTION_ARGS)
 	// TODO this is a little ugly, but it gets the job done for now
 	bytes = (char *)PG_GETARG_SERGRADE_P(0) - VARHDRSZ;
 	serialized = (SerializedGrade *)(bytes + VARHDRSZ);
-	grade = grade_from_serialized(serialized);
+
+	grade_from_serialized(&grade, serialized);
 
         // NOTE Grade.type _is_ typmod for valid types (for now)
-	type_str = typmod_string(grade->type);
+	type_str = typmod_string(grade.type);
         if (type_str) {
 		type_text = cstring_to_text(type_str);
 	} else {
 		type_text = cstring_to_text("");
 	}
 
-	grade_free(grade);
 	PG_FREE_IF_COPY(bytes, 0);
 	PG_RETURN_TEXT_P(type_text);
 }
