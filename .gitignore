@@ -13,3 +13,5 @@ test_pg_climb
 # coverage artifacts
 *.gcno
 *.gcda
+coverage*html
+coverage.css

@@ -30,6 +30,12 @@ pg_climb.gcda: pg_climb.o check-unit
 .PHONY: coverage
 coverage: pg_climb.gcno pg_climb.gcda
 	gcovr --filter pg_climb.c
+
+.PHONY: coverage-html
+coverage-html: coverage.html
+
+coverage.html: pg_climb.gcno pg_climb.gcda
+	gcovr --filter pg_climb.c --html --html-details --output coverage.html
 endif
 
 .PHONY: test
