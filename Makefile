@@ -23,9 +23,9 @@ UNIT_EXEC = test_pg_climb
 UNIT_SOURCES = test_pg_climb.c pg_climb.o
 
 ifeq ($(COVERAGE),yes)
-pg_climb.gcno: pg_climb.o
+pg_climb.gcno: pg_climb.o check-unit
 
-pg_climb.gcda: check-unit
+pg_climb.gcda: pg_climb.o check-unit
 
 .PHONY: coverage
 coverage: pg_climb.gcno pg_climb.gcda
