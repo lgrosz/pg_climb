@@ -23,92 +23,72 @@ END_TEST
 
 START_TEST(test_grade_strings)
 {
-	Grade *grade;
+	Grade grade;
 	Verm *verm;
 	Font *font;
 	Yds *yds;
 	char string[16];
 
-	grade = grade_from_string("", ANYTYPE);
-	ck_assert_ptr_null(grade);
+	ck_assert_int_ne(grade_from_string(&grade, "", ANYTYPE), 0);
 
-	grade = grade_from_string("V6", ANYTYPE);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, VERMTYPE);
+	ck_assert_int_eq(grade_from_string(&grade, "V6", ANYTYPE), 0);
+	ck_assert_uint_eq(grade.type, VERMTYPE);
 
-	verm = grade_as_verm(grade);
+	verm = grade_as_verm(&grade);
 	ck_assert_ptr_nonnull(verm);
 	ck_assert_uint_eq(verm_get_value(verm), 6);
 
-	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 2);
+	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "V6");
-	free(grade);
 
-	grade = grade_from_string("F7C+", ANYTYPE);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, FONTTYPE);
+	ck_assert_int_eq(grade_from_string(&grade, "F7C+", ANYTYPE), 0);
+	ck_assert_uint_eq(grade.type, FONTTYPE);
 
-	font = grade_as_font(grade);
+	font = grade_as_font(&grade);
 	ck_assert_ptr_nonnull(font);
 	ck_assert_uint_eq(font_get_value(font), 21);
 
-	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 4);
+	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 4);
 	ck_assert_str_eq(string, "F7C+");
-	free(grade);
 
-	grade = grade_from_string("5.13b", ANYTYPE);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, YDSTYPE);
+	ck_assert_int_eq(grade_from_string(&grade, "5.13b", ANYTYPE), 0);
+	ck_assert_uint_eq(grade.type, YDSTYPE);
 
-	yds = grade_as_yds(grade);
+	yds = grade_as_yds(&grade);
 	ck_assert_ptr_nonnull(yds);
 	ck_assert_uint_eq(yds_get_value(yds), 22);
 
-	ck_assert_int_eq(grade_format(grade, string, sizeof(string)), 5);
+	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.13b");
-	free(grade);
 
 	// These should fail because of the hint, even though they are valid for other types
-	grade = grade_from_string("F7C", VERMTYPE);
-	ck_assert_ptr_null(grade);
-	grade = grade_from_string("5.11", FONTTYPE);
-	ck_assert_ptr_null(grade);
-	grade = grade_from_string("V7", YDSTYPE);
-	ck_assert_ptr_null(grade);
+	ck_assert_int_ne(grade_from_string(&grade, "F7C", VERMTYPE), 0);
+	ck_assert_int_ne(grade_from_string(&grade, "5.11", FONTTYPE), 0);
+	ck_assert_int_ne(grade_from_string(&grade, "V7", YDSTYPE), 0);
 }
 END_TEST
 
 START_TEST(test_grade_cmp)
 {
-	Grade *g1;
-	Grade *g2;
+	Grade g1;
+	Grade g2;
 
 	// I'm not totally sure what these should be, but they should at least be not equal
-	g1 = grade_from_string("V1", VERMTYPE);
-	g2 = grade_from_string("F5", FONTTYPE);
-	ck_assert_int_ne(grade_cmp(g1, g2), 0);
-	grade_free(g1);
-	grade_free(g2);
+	ck_assert_int_eq(grade_from_string(&g1, "V1", VERMTYPE), 0);
+	ck_assert_int_eq(grade_from_string(&g2, "F5", FONTTYPE), 0);
+	ck_assert_int_ne(grade_cmp(&g1, &g2), 0);
 
-	g1 = grade_from_string("V1", VERMTYPE);
-	g2 = grade_from_string("V2", VERMTYPE);
-	ck_assert_int_le(grade_cmp(g1, g2), 0);
-	grade_free(g1);
-	grade_free(g2);
+	ck_assert_int_eq(grade_from_string(&g1, "V1", VERMTYPE), 0);
+	ck_assert_int_eq(grade_from_string(&g2, "V2", VERMTYPE), 0);
+	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 
-	g1 = grade_from_string("F7A+", FONTTYPE);
-	g2 = grade_from_string("F7B", FONTTYPE);
-	ck_assert_int_le(grade_cmp(g1, g2), 0);
-	grade_free(g1);
-	grade_free(g2);
+	ck_assert_int_eq(grade_from_string(&g1, "F7A+", FONTTYPE), 0);
+	ck_assert_int_eq(grade_from_string(&g2, "F7B", FONTTYPE), 0);
+	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 
-	g1 = grade_from_string("5.9", YDSTYPE);
-	ck_assert_ptr_nonnull(g1);
-	g2 = grade_from_string("5.10a", YDSTYPE);
-	ck_assert_ptr_nonnull(g1);
-	ck_assert_int_le(grade_cmp(g1, g2), 0);
-	grade_free(g1);
-	grade_free(g2);
+	ck_assert_int_eq(grade_from_string(&g1, "5.9", YDSTYPE), 0);
+	ck_assert_int_eq(grade_from_string(&g2, "5.10a", YDSTYPE), 0);
+	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 }
 END_TEST
 
@@ -417,7 +397,7 @@ END_TEST
 
 START_TEST(test_serial_grade)
 {
-	Grade *grade;
+	Grade grade;
 	SerializedGrade *ser;
 	Verm *verm;
 	Font *font;
@@ -427,94 +407,77 @@ START_TEST(test_serial_grade)
 
 	// verm
 	// serialize
-	grade = grade_from_string("V6", ANYTYPE);
-	ser = serialized_grade_from_grade(grade, &size);
+	ck_assert_int_eq(grade_from_string(&grade, "V6", ANYTYPE), 0);
+	ser = serialized_grade_from_grade(&grade, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
 	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), VERMTYPE);
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 6);
 
-	grade_free(grade);
-	grade = NULL;
-
 	// deserialize
-	grade = grade_from_serialized(ser);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, VERMTYPE);
-	verm = grade_as_verm(grade);
+	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
+	ck_assert_uint_eq(grade.type, VERMTYPE);
+	verm = grade_as_verm(&grade);
 	ck_assert_ptr_nonnull(verm);
 	ck_assert_uint_eq(verm_get_value(verm), 6);
 
 	serialized_grade_free(ser);
-	grade_free(grade);
 
 	// font
 	// serialize
-	grade = grade_from_string("F8A", ANYTYPE);
-	ser = serialized_grade_from_grade(grade, &size);
+	ck_assert_int_eq(grade_from_string(&grade, "F8A", ANYTYPE), 0);
+	ser = serialized_grade_from_grade(&grade, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
 	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), FONTTYPE);
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 22);
 
-	grade_free(grade);
-	grade = NULL;
-
 	// deserialize
-	grade = grade_from_serialized(ser);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, FONTTYPE);
-	font = grade_as_font(grade);
+	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
+	ck_assert_uint_eq(grade.type, FONTTYPE);
+	font = grade_as_font(&grade);
 	ck_assert_ptr_nonnull(font);
 	ck_assert_uint_eq(font_get_value(font), 22);
 
 	serialized_grade_free(ser);
-	grade_free(grade);
 
 	// yds
 	// serialize
-	grade = grade_from_string("5.11b", ANYTYPE);
-	ser = serialized_grade_from_grade(grade, &size);
+	ck_assert_int_eq(grade_from_string(&grade, "5.11b", ANYTYPE), 0);
+	ser = serialized_grade_from_grade(&grade, &size);
 	ck_assert_ptr_nonnull(ser);
 	ck_assert_uint_eq(size, 5);
 	data = (uint8_t*)ser->data;
 	ck_assert_uint_eq(serialized_grade_data_read_uint32_t(data), YDSTYPE);
 	ck_assert_uint_eq(serialized_grade_data_read_uint8_t(data+4), 14);
 
-	grade_free(grade);
-	grade = NULL;
-
 	// deserialize
-	grade = grade_from_serialized(ser);
-	ck_assert_ptr_nonnull(grade);
-	ck_assert_uint_eq(grade->type, YDSTYPE);
-	yds = grade_as_yds(grade);
+	ck_assert_int_eq(grade_from_serialized(&grade, ser), 0);
+	ck_assert_uint_eq(grade.type, YDSTYPE);
+	yds = grade_as_yds(&grade);
 	ck_assert_ptr_nonnull(yds);
 	ck_assert_uint_eq(yds_get_value(yds), 14);
 
 	serialized_grade_free(ser);
-	grade_free(grade);
 }
 
 START_TEST(test_serial_cmp)
 {
-	Grade *g1;
-	Grade *g2;
+	Grade g1;
+	Grade g2;
 	SerializedGrade *sg1;
 	SerializedGrade *sg2;
 
-	g1 = grade_from_string("V6", ANYTYPE);
-	g2 = grade_from_string("V7", ANYTYPE);
-	sg1 = serialized_grade_from_grade(g1, NULL);
-	sg2 = serialized_grade_from_grade(g2, NULL);
+	ck_assert_int_eq(grade_from_string(&g1, "V6", ANYTYPE), 0);
+	ck_assert_int_eq(grade_from_string(&g2, "V7", ANYTYPE), 0);
+	sg1 = serialized_grade_from_grade(&g1, NULL);
+	sg2 = serialized_grade_from_grade(&g2, NULL);
 
 	ck_assert_int_le(serialized_grade_cmp(sg1, sg2), 0);
 	serialized_grade_free(sg1);
 	serialized_grade_free(sg2);
-	grade_free(g1);
-	grade_free(g2);
 }
 END_TEST
 

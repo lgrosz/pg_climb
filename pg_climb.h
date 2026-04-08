@@ -81,8 +81,7 @@ int yds_parse(Yds *yds, const char *str);
 int yds_format(const Yds *yds, char *, size_t);
 
 // Grade Functions
-Grade *grade_from_string(const char *str, uint32_t type_hint);
-void grade_free(Grade *grade);
+int grade_from_string(Grade *, const char *str, uint32_t type_hint);
 int grade_format(const Grade *grade, char *, size_t);
 int grade_cmp(const Grade *g1, const Grade *g2);
 Verm *grade_as_verm(Grade *g);
@@ -98,11 +97,11 @@ SerializedGrade *serialized_grade_from_font(const Font *font, size_t *size);
 size_t serialized_grade_size_from_yds(void);
 SerializedGrade *serialized_grade_from_yds(const Yds *yds, size_t *size);
 SerializedGrade *serialized_grade_from_grade(const Grade *grade, size_t *size);
-Grade *grade_from_serialized(const SerializedGrade *serialized);
+int grade_from_serialized(Grade *, const SerializedGrade *serialized);
 int serialized_grade_cmp(const SerializedGrade *sg1, const SerializedGrade *sg2);
 
 // Serialization Buffer Functions
-Grade *grade_from_serialized_grade_data(uint8_t *buf);
+int grade_from_serialized_grade_data(Grade *, uint8_t *buf);
 uint32_t serialized_grade_data_read_uint32_t(const uint8_t *buf);
 uint8_t serialized_grade_data_read_uint8_t(const uint8_t *data);
 size_t serialized_grade_buffer_write_verm(const Verm *verm, uint8_t *buf);
