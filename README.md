@@ -12,5 +12,7 @@ make installcheck  # run regression tests
 Coverage is disabled by default... with a clean build, get coverage by
 
 ```sh
-COVERAGE=yes make coverage
+make COVERAGE=yes coverage
+# or produce html
+make COVERAGE=yes coverage.html
 ```
