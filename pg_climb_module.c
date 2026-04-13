@@ -144,14 +144,16 @@ GRADE_typmod_in(PG_FUNCTION_ARGS)
 	uint8_t	type;
 	int32_t	typmod = 0;
 
-	deconstruct_array(arr, CSTRINGOID, -2, false, 'c', &values, NULL, &size);
+	if (ARR_ELEMTYPE(arr) != CSTRINGOID)
+		ereport(ERROR, (errcode(ERRCODE_DATA_EXCEPTION), errmsg("typmod array must be type cstring")));
 
-	if (size != 1) {
-		ereport(ERROR,
-				(errcode(ERRCODE_DATA_EXCEPTION),
-				 errmsg("typmod array must contain exactly one value")));
-		PG_RETURN_INT32(0);
-	}
+	if (ARR_NDIM(arr) != 1)
+		ereport(ERROR, (errcode(ERRCODE_ARRAY_SUBSCRIPT_ERROR), errmsg("typmod array must be one-dimensional")));
+
+	if (ARR_HASNULL(arr))
+		ereport(ERROR, (errcode(ERRCODE_NULL_VALUE_NOT_ALLOWED), errmsg("typmod array must not contain nulls")));
+
+	deconstruct_array(arr, CSTRINGOID, -2, false, 'c', &values, NULL, &size);
 
 	for (i = 0; i < size; i++) {
 		if (i == 0) { /* TYPE */
@@ -160,7 +162,7 @@ GRADE_typmod_in(PG_FUNCTION_ARGS)
 			if (grade_typmod_type_from_string(str, &type) == 0) {
 				GRADE_TYPMOD_SET_TYPE(typmod, type);
 			} else {
-				ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg("parameter value not a valid typmod")));
+				ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg("Invalid grade type modifier: %s", str)));
 			}
 		}
 		/* future typmod fields handled here */
