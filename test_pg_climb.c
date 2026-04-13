@@ -2,15 +2,6 @@
 #include <stdlib.h>
 #include "pg_climb.h"
 
-START_TEST(test_grade_type_from_typmod)
-{
-	ck_assert_uint_eq(grade_type_from_typmod("verm"), VERMTYPE);
-	ck_assert_uint_eq(grade_type_from_typmod("font"), FONTTYPE);
-	ck_assert_uint_eq(grade_type_from_typmod("yds"), YDSTYPE);
-	ck_assert_uint_eq(grade_type_from_typmod("nothing"), ANYTYPE);
-}
-END_TEST
-
 START_TEST(test_grade_strings)
 {
 	Grade grade;
@@ -79,15 +70,6 @@ START_TEST(test_grade_cmp)
 	ck_assert_int_eq(grade_from_string(&g1, "5.9", YDSTYPE), 0);
 	ck_assert_int_eq(grade_from_string(&g2, "5.10a", YDSTYPE), 0);
 	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
-}
-END_TEST
-
-START_TEST(test_typmod_string)
-{
-	ck_assert_ptr_null(typmod_string(ANYTYPE));
-	ck_assert_str_eq(typmod_string(VERMTYPE), "verm");
-	ck_assert_str_eq(typmod_string(FONTTYPE), "font");
-	ck_assert_str_eq(typmod_string(YDSTYPE), "yds");
 }
 END_TEST
 
@@ -416,11 +398,8 @@ static Suite* pg_climb_suite(void)
 	tc_yds = tcase_create("Yosemite Decimal System");
 	tc_serial = tcase_create("Serialization");
 
-	tcase_add_test(tc_core, test_grade_type_name);
-	tcase_add_test(tc_core, test_grade_type_from_typmod);
 	tcase_add_test(tc_core, test_grade_strings);
 	tcase_add_test(tc_core, test_grade_cmp);
-	tcase_add_test(tc_core, test_typmod_string);
 	suite_add_tcase(s, tc_core);
 
 	tcase_add_test(tc_verm, test_verm_basic);

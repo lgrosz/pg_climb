@@ -34,10 +34,6 @@ typedef struct {
     } as;
 } Grade;
 
-// Type Functions
-uint32_t grade_type_from_typmod(const char *);
-const char *typmod_string(int32_t typmod);
-
 // Verm Functions
 int verm_cmp(const Verm *v1, const Verm *v2);
 uint8_t verm_get_value(const Verm *verm);

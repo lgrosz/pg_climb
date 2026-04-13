@@ -8,33 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint32_t grade_type_from_typmod(const char *str)
-{
-	if (strcasecmp("verm", str) == 0) {
-		return VERMTYPE;
-	} else if (strcasecmp("font", str) == 0) {
-		return FONTTYPE;
-	} else if (strcasecmp("yds", str) == 0) {
-		return YDSTYPE;
-	} else {
-		return ANYTYPE;
-	}
-}
-
-const char *typmod_string(int32_t typmod)
-{
-	switch (typmod) {
-		case VERMTYPE:
-			return "verm";
-		case FONTTYPE:
-			return "font";
-		case YDSTYPE:
-			return "yds";
-	}
-
-	return NULL;
-}
-
 int verm_cmp(const Verm *v1, const Verm *v2)
 {
 	return v1->value - v2->value;
