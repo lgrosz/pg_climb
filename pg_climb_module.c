@@ -36,23 +36,16 @@ GRADE_in(PG_FUNCTION_ARGS)
 {
 	Grade	grade;
 	char	*input = PG_GETARG_CSTRING(0);
-	int32_t	typmod = -1;
 	struct varlena	*varlena;
 	uint8_t	*buf;
 	size_t	size;
-
-	if (PG_NARGS() > 2 && !PG_ARGISNULL(2)) {
-		typmod = PG_GETARG_INT32(2);
-	}
 
 	if (input[0] == '\0') {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
 
-	;
-
-	if (grade_from_string(&grade, input, typmod < 0 ? ANYTYPE : (uint32_t)typmod) != 0) {
+	if (grade_from_string(&grade, input, ANYTYPE) != 0) {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
