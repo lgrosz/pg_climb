@@ -35,7 +35,6 @@ typedef struct {
 } Grade;
 
 // Type Functions
-const char *grade_type_name(uint32_t type);
 uint32_t grade_type_from_typmod(const char *);
 const char *typmod_string(int32_t typmod);
 

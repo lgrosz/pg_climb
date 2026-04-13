@@ -8,20 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *grade_type_name(uint32_t type)
-{
-	switch (type) {
-		case VERMTYPE:
-			return "V-Scale";
-		case FONTTYPE:
-			return "Font-Scale";
-		case YDSTYPE:
-			return "Yosemite Decimal System";
-		default:
-			return "Unknown";
-	}
-}
-
 uint32_t grade_type_from_typmod(const char *str)
 {
 	if (strcasecmp("verm", str) == 0) {

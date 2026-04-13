@@ -2,16 +2,6 @@
 #include <stdlib.h>
 #include "pg_climb.h"
 
-START_TEST(test_grade_type_name)
-{
-	ck_assert_str_eq(grade_type_name(0), "Unknown");
-	ck_assert_str_eq(grade_type_name(1), "V-Scale");
-	ck_assert_str_eq(grade_type_name(2), "Font-Scale");
-	ck_assert_str_eq(grade_type_name(3), "Yosemite Decimal System");
-	ck_assert_str_eq(grade_type_name(4), "Unknown");
-}
-END_TEST
-
 START_TEST(test_grade_type_from_typmod)
 {
 	ck_assert_uint_eq(grade_type_from_typmod("verm"), VERMTYPE);
