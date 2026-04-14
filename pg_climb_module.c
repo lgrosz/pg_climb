@@ -318,11 +318,11 @@ static const char *
 grade_type_string(uint32_t type)
 {
 	switch (type) {
-	case VERMTYPE:
+	case GRADE_TYPE_VERM:
 		return GRADEVERMSTR;
-	case FONTTYPE:
+	case GRADE_TYPE_FONT:
 		return GRADEFONTSTR;
-	case YDSTYPE:
+	case GRADE_TYPE_YDS:
 		return GRADEYDSSTR;
 	}
 

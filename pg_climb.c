@@ -298,17 +298,17 @@ int grade_parse(Grade *g, const char *str)
 	// Try each type
 
 	if (verm_parse(&g->as.verm, str) == 0) {
-		g->type = VERMTYPE;
+		g->type = GRADE_TYPE_VERM;
 		return 0;
 	}
 
 	if (font_parse(&g->as.font, str) == 0) {
-		g->type = FONTTYPE;
+		g->type = GRADE_TYPE_FONT;
 		return 0;
 	}
 
 	if (yds_parse(&g->as.yds, str) == 0) {
-		g->type = YDSTYPE;
+		g->type = GRADE_TYPE_YDS;
 		return 0;
 	}
 
@@ -321,11 +321,11 @@ int grade_format(const Grade *grade, char *str, size_t size)
 		return -1;
 
 	switch (grade->type) {
-		case VERMTYPE:
+		case GRADE_TYPE_VERM:
 			return verm_format(&grade->as.verm, str, size);
-		case FONTTYPE:
+		case GRADE_TYPE_FONT:
 			return font_format(&grade->as.font, str, size);
-		case YDSTYPE:
+		case GRADE_TYPE_YDS:
 			return yds_format(&grade->as.yds, str, 16);
 	}
 
@@ -342,11 +342,11 @@ int grade_cmp(const Grade *g1, const Grade *g2)
 		return g1->type - g2->type;
 
 	switch (g1->type) {
-		case VERMTYPE:
+		case GRADE_TYPE_VERM:
 			return verm_cmp(&g1->as.verm, &g2->as.verm);
-		case FONTTYPE:
+		case GRADE_TYPE_FONT:
 			return font_cmp(&g1->as.font, &g2->as.font);
-		case YDSTYPE:
+		case GRADE_TYPE_YDS:
 			return yds_cmp(&g1->as.yds, &g2->as.yds);
 		default:
 			return 0;
@@ -355,21 +355,21 @@ int grade_cmp(const Grade *g1, const Grade *g2)
 
 Verm *grade_as_verm(Grade *g)
 {
-	if (!g || g->type != VERMTYPE)
+	if (!g || g->type != GRADE_TYPE_VERM)
 		return NULL;
 	return &g->as.verm;
 }
 
 Font *grade_as_font(Grade *g)
 {
-	if (!g || g->type != FONTTYPE)
+	if (!g || g->type != GRADE_TYPE_FONT)
 		return NULL;
 	return &g->as.font;
 }
 
 Yds *grade_as_yds(Grade *g)
 {
-	if (!g || g->type != YDSTYPE)
+	if (!g || g->type != GRADE_TYPE_YDS)
 		return NULL;
 	return &g->as.yds;
 }
@@ -388,13 +388,13 @@ size_t grade_serialize(const Grade *g, uint8_t *buf, size_t cap)
 	memcpy(buf, &type, sizeof(uint32_t));
 
 	switch (type) {
-	case VERMTYPE:
+	case GRADE_TYPE_VERM:
 		buf[4] = verm_get_value(&g->as.verm);
 		break;
-	case FONTTYPE:
+	case GRADE_TYPE_FONT:
 		buf[4] = font_get_value(&g->as.font);
 		break;
-	case YDSTYPE:
+	case GRADE_TYPE_YDS:
 		buf[4] = yds_get_value(&g->as.yds);
 		break;
 	default:
@@ -419,13 +419,13 @@ int grade_deserialize(Grade *g, const uint8_t *buf, size_t len, size_t *consumed
 	value = buf[4];
 
 	switch (type) {
-	case VERMTYPE:
+	case GRADE_TYPE_VERM:
 		verm_set_value(&g->as.verm, value);
 		break;
-	case FONTTYPE:
+	case GRADE_TYPE_FONT:
 		font_set_value(&g->as.font, value);
 		break;
-	case YDSTYPE:
+	case GRADE_TYPE_YDS:
 		yds_set_value(&g->as.yds, value);
 		break;
 	default:

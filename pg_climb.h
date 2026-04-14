@@ -4,12 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Grade Types - these are defines to avoid confusion about what type the
-// compiler decides an enum to be
-#define VERMTYPE	1
-#define FONTTYPE	2
-#define YDSTYPE	3
-
 // Data Structures
 typedef struct {
 	uint8_t value;
@@ -23,8 +17,14 @@ typedef struct {
 	uint8_t value;
 } Yds;
 
+typedef enum {
+        GRADE_TYPE_VERM = 1,
+        GRADE_TYPE_FONT,
+        GRADE_TYPE_YDS,
+} GradeType;
+
 typedef struct {
-    uint32_t type;
+    GradeType type;
 
     union {
         Verm verm;
