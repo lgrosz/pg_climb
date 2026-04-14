@@ -77,6 +77,43 @@ grade_typmod_type_name(uint8_t type)
 	return NULL;
 }
 
+static inline uint8_t
+grade_get_type(const Grade *grade)
+{
+	// TODO This is smelly. At some point I need to decide how I am going to handle types.
+
+	switch (grade->type) {
+        case GRADE_TYPE_VERM:
+		return GRADEVERMTYPE;
+        case GRADE_TYPE_FONT:
+		return GRADEFONTTYPE;
+        case GRADE_TYPE_YDS:
+		return GRADEYDSTYPE;
+        }
+
+	return 0;
+}
+
+// This could be use to harmonize the grade with the typmod, but for now we just
+// stop the callee if it is mismatched for any reason.
+static void
+grade_enforce_typmod(const Grade *grade, int32_t typmod)
+{
+	uint8_t typmod_type = GRADE_TYPMOD_GET_TYPE(typmod);
+	uint8_t grade_type = grade_get_type(grade);
+
+	// No restrictions
+	if (typmod < 0)
+		return;
+
+	// Types must be strictly equal
+	if (typmod_type > 0 && typmod_type != grade_type) {
+		ereport(ERROR, (
+			errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+			errmsg("Grade type (%s) does not match column type (%s) (%i)", grade_typmod_type_name(grade_type), grade_typmod_type_name(typmod_type), typmod)));
+	}
+}
+
 PG_FUNCTION_INFO_V1(GRADE_in);
 
 Datum
@@ -84,9 +121,14 @@ GRADE_in(PG_FUNCTION_ARGS)
 {
 	Grade	grade;
 	char	*input = PG_GETARG_CSTRING(0);
+	int32_t	grade_typmod = -1;
 	struct varlena	*varlena;
 	uint8_t	*buf;
 	size_t	size;
+
+	if (PG_NARGS() > 2 && (!PG_ARGISNULL(2))) {
+		grade_typmod = PG_GETARG_INT32(2);
+	}
 
 	if (input[0] == '\0') {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
@@ -97,6 +139,8 @@ GRADE_in(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
+
+	grade_enforce_typmod(&grade, grade_typmod);
 
 	size = grade_serialize(&grade, NULL, 0);
 
