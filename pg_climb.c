@@ -290,7 +290,7 @@ int yds_format(const Yds *yds, char *str, size_t size)
 	}
 }
 
-int grade_from_string(Grade *g, const char *str, uint32_t type_hint)
+int grade_parse(Grade *g, const char *str, uint32_t type_hint)
 {
 	if (!g|| !str || !*str)
 		return 1;

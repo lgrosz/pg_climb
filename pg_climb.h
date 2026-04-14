@@ -56,7 +56,7 @@ int yds_parse(Yds *yds, const char *str);
 int yds_format(const Yds *yds, char *, size_t);
 
 // Grade Functions
-int grade_from_string(Grade *, const char *str, uint32_t type_hint);
+int grade_parse(Grade *, const char *str, uint32_t type_hint);
 int grade_format(const Grade *grade, char *, size_t);
 int grade_cmp(const Grade *g1, const Grade *g2);
 Verm *grade_as_verm(Grade *g);
