@@ -6,7 +6,6 @@
 
 // Grade Types - these are defines to avoid confusion about what type the
 // compiler decides an enum to be
-#define ANYTYPE	0
 #define VERMTYPE	1
 #define FONTTYPE	2
 #define YDSTYPE	3
@@ -56,7 +55,7 @@ int yds_parse(Yds *yds, const char *str);
 int yds_format(const Yds *yds, char *, size_t);
 
 // Grade Functions
-int grade_parse(Grade *, const char *str, uint32_t type_hint);
+int grade_parse(Grade *, const char *);
 int grade_format(const Grade *grade, char *, size_t);
 int grade_cmp(const Grade *g1, const Grade *g2);
 Verm *grade_as_verm(Grade *g);

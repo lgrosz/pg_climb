@@ -10,9 +10,9 @@ START_TEST(test_grade_strings)
 	Yds *yds;
 	char string[16];
 
-	ck_assert_int_ne(grade_parse(&grade, "", ANYTYPE), 0);
+	ck_assert_int_ne(grade_parse(&grade, ""), 0);
 
-	ck_assert_int_eq(grade_parse(&grade, "V6", ANYTYPE), 0);
+	ck_assert_int_eq(grade_parse(&grade, "V6"), 0);
 	ck_assert_uint_eq(grade.type, VERMTYPE);
 
 	verm = grade_as_verm(&grade);
@@ -22,7 +22,7 @@ START_TEST(test_grade_strings)
 	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 2);
 	ck_assert_str_eq(string, "V6");
 
-	ck_assert_int_eq(grade_parse(&grade, "F7C+", ANYTYPE), 0);
+	ck_assert_int_eq(grade_parse(&grade, "F7C+"), 0);
 	ck_assert_uint_eq(grade.type, FONTTYPE);
 
 	font = grade_as_font(&grade);
@@ -32,7 +32,7 @@ START_TEST(test_grade_strings)
 	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 4);
 	ck_assert_str_eq(string, "F7C+");
 
-	ck_assert_int_eq(grade_parse(&grade, "5.13b", ANYTYPE), 0);
+	ck_assert_int_eq(grade_parse(&grade, "5.13b"), 0);
 	ck_assert_uint_eq(grade.type, YDSTYPE);
 
 	yds = grade_as_yds(&grade);
@@ -41,11 +41,6 @@ START_TEST(test_grade_strings)
 
 	ck_assert_int_eq(grade_format(&grade, string, sizeof(string)), 5);
 	ck_assert_str_eq(string, "5.13b");
-
-	// These should fail because of the hint, even though they are valid for other types
-	ck_assert_int_ne(grade_parse(&grade, "F7C", VERMTYPE), 0);
-	ck_assert_int_ne(grade_parse(&grade, "5.11", FONTTYPE), 0);
-	ck_assert_int_ne(grade_parse(&grade, "V7", YDSTYPE), 0);
 }
 END_TEST
 
@@ -55,20 +50,20 @@ START_TEST(test_grade_cmp)
 	Grade g2;
 
 	// I'm not totally sure what these should be, but they should at least be not equal
-	ck_assert_int_eq(grade_parse(&g1, "V1", VERMTYPE), 0);
-	ck_assert_int_eq(grade_parse(&g2, "F5", FONTTYPE), 0);
+	ck_assert_int_eq(grade_parse(&g1, "V1"), 0);
+	ck_assert_int_eq(grade_parse(&g2, "F5"), 0);
 	ck_assert_int_ne(grade_cmp(&g1, &g2), 0);
 
-	ck_assert_int_eq(grade_parse(&g1, "V1", VERMTYPE), 0);
-	ck_assert_int_eq(grade_parse(&g2, "V2", VERMTYPE), 0);
+	ck_assert_int_eq(grade_parse(&g1, "V1"), 0);
+	ck_assert_int_eq(grade_parse(&g2, "V2"), 0);
 	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 
-	ck_assert_int_eq(grade_parse(&g1, "F7A+", FONTTYPE), 0);
-	ck_assert_int_eq(grade_parse(&g2, "F7B", FONTTYPE), 0);
+	ck_assert_int_eq(grade_parse(&g1, "F7A+"), 0);
+	ck_assert_int_eq(grade_parse(&g2, "F7B"), 0);
 	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 
-	ck_assert_int_eq(grade_parse(&g1, "5.9", YDSTYPE), 0);
-	ck_assert_int_eq(grade_parse(&g2, "5.10a", YDSTYPE), 0);
+	ck_assert_int_eq(grade_parse(&g1, "5.9"), 0);
+	ck_assert_int_eq(grade_parse(&g2, "5.10a"), 0);
 	ck_assert_int_le(grade_cmp(&g1, &g2), 0);
 }
 END_TEST

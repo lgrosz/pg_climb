@@ -290,39 +290,13 @@ int yds_format(const Yds *yds, char *str, size_t size)
 	}
 }
 
-int grade_parse(Grade *g, const char *str, uint32_t type_hint)
+int grade_parse(Grade *g, const char *str)
 {
 	if (!g|| !str || !*str)
 		return 1;
 
-	if (type_hint == VERMTYPE) {
-		if (verm_parse(&g->as.verm, str) == 0) {
-			g->type = VERMTYPE;
-			return 0;
-		}
+	// Try each type
 
-		return 1;
-	}
-
-	if (type_hint == FONTTYPE) {
-		if (font_parse(&g->as.font, str) == 0) {
-			g->type = FONTTYPE;
-			return 0;
-		}
-
-		return 1;
-	}
-
-	if (type_hint == YDSTYPE) {
-		if (yds_parse(&g->as.yds, str) == 0) {
-			g->type = YDSTYPE;
-			return 0;
-		}
-
-		return 1;
-	}
-
-	// ANYTYPE
 	if (verm_parse(&g->as.verm, str) == 0) {
 		g->type = VERMTYPE;
 		return 0;

@@ -93,7 +93,7 @@ GRADE_in(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 
-	if (grade_parse(&grade, input, ANYTYPE) != 0) {
+	if (grade_parse(&grade, input) != 0) {
 		ereport(ERROR,(errmsg("parse error - invalid grade")));
 		PG_RETURN_NULL();
 	}
