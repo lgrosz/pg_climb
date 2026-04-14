@@ -74,7 +74,7 @@ grade_typmod_type_name(uint8_t type)
 			return GRADEYDSSTR;
 	}
 
-	return NULL;
+	return "invalid";
 }
 
 static inline uint8_t
