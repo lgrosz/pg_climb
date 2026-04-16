@@ -17,21 +17,30 @@ typedef struct {
 	uint8_t value;
 } Yds;
 
+typedef struct Grade Grade;
+typedef struct {
+	Grade *grades;
+	uint32_t n_grades;
+	uint32_t max_grades;
+} Collection;
+
 typedef enum {
         GRADE_TYPE_VERM = 1,
         GRADE_TYPE_FONT,
         GRADE_TYPE_YDS,
+	GRADE_TYPE_COLLECTION,
 } GradeType;
 
-typedef struct {
+struct Grade {
     GradeType type;
 
     union {
         Verm verm;
         Font font;
         Yds yds;
+	Collection collection;
     } as;
-} Grade;
+};
 
 // Verm Functions
 int verm_cmp(const Verm *v1, const Verm *v2);
