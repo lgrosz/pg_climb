@@ -8,10 +8,24 @@ SELECT EXISTS (
  t
 (1 row)
 
-SELECT grade_out('V5'::grade);
- grade_out 
------------
+-- Grades can be created by their well-known formats with `grade_in()`
+-- (`::grade`) and outputted in those same formats with `grade_out()`
+SELECT 'V5'::grade;
+ grade 
+-------
  V5
+(1 row)
+
+SELECT 'F7A'::grade;
+ grade 
+-------
+ F7A
+(1 row)
+
+SELECT '5.12a'::grade;
+ grade 
+-------
+ 5.12a
 (1 row)
 
 -- invalid because "nope" isn't a grade type

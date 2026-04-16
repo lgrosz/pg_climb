@@ -4,7 +4,11 @@ SELECT EXISTS (
     SELECT 1 FROM pg_type WHERE typname = 'grade'
 );
 
-SELECT grade_out('V5'::grade);
+-- Grades can be created by their well-known formats with `grade_in()`
+-- (`::grade`) and outputted in those same formats with `grade_out()`
+SELECT 'V5'::grade;
+SELECT 'F7A'::grade;
+SELECT '5.12a'::grade;
 
 -- invalid because "nope" isn't a grade type
 CREATE TABLE grades_1(grade grade(nope));
